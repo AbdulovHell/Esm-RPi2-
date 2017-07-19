@@ -37,7 +37,8 @@
       <LibraryDependencies>wiringPi</LibraryDependencies>
     </Link>
     <RemotePostBuildEvent>
-      <Command>gpio export 27 output &amp;&amp; gpio export 17 output &amp;&amp; gpio export 22 output &amp;&amp; gpio export 26 output &amp;&amp; gpio export 19 output &amp;&amp; gpio export 13 output &amp;&amp; gpio export 6 output</Command>
+      <Command>
+      </Command>
       <Message>
       </Message>
     </RemotePostBuildEvent>
