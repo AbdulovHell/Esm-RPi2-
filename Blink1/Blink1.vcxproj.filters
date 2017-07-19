@@ -12,13 +12,8 @@
     <ClCompile Include="main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="lcd.cpp">
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\Linux\include\wiringPi\2.32\lcd.c">
       <Filter>Source</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="lcd.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
