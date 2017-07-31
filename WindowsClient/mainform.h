@@ -20,9 +20,6 @@ namespace WindowsClient {
 		mainform(void)
 		{
 			InitializeComponent();
-			//
-			//TODO: добавьте код конструктора
-			//
 		}
 
 	protected:
@@ -36,24 +33,35 @@ namespace WindowsClient {
 				delete components;
 			}
 		}
-	private: System::Windows::Forms::TextBox^  textBox1;
-	protected:
-	private: System::Windows::Forms::TextBox^  textBox2;
-	private: System::Windows::Forms::Button^  button1;
+	private: System::Windows::Forms::TextBox^  IPAddrEdit;
+	private: System::Windows::Forms::TextBox^  PortEdit;
+	private: System::Windows::Forms::Button^  ConnectBtn;
 	private: System::Windows::Forms::TextBox^  textBox3;
 	private: System::Windows::Forms::Button^  button2;
-	private: System::Windows::Forms::TextBox^  textBox4;
+	private: System::Windows::Forms::ComboBox^  ChannelNum;
+	private: System::Windows::Forms::NumericUpDown^  AttNum;
+	private: System::Windows::Forms::Button^  SendParamBtn;
+	private: System::Windows::Forms::Timer^  ConnTest;
+	private: System::Windows::Forms::TextBox^  ProgLog;
 
 	private:
 		void WriteLog(String^ msg);
 		void ReadSocket();
+		//Комманда на установку канала и значения затухания
+		void SendCMD(uint8_t ch, uint8_t att);
+		//Комманда проверки соединения
+		void Test();
+		void CalcSum(array<Byte>^ dt);
+		bool Verify(array<Byte>^ dt);
 		/// <summary>
 		/// Обязательная переменная конструктора.
 		/// </summary>
 		TcpClient^ client;
 		NetworkStream^ stream;
 		Thread^ readThrd;
-	private: System::Windows::Forms::Timer^  timer1;
+		bool isConnected = false;
+		bool initTest = false;
+
 	private: System::ComponentModel::IContainer^  components;
 
 
@@ -65,44 +73,48 @@ namespace WindowsClient {
 			 void InitializeComponent(void)
 			 {
 				 this->components = (gcnew System::ComponentModel::Container());
-				 this->textBox1 = (gcnew System::Windows::Forms::TextBox());
-				 this->textBox2 = (gcnew System::Windows::Forms::TextBox());
-				 this->button1 = (gcnew System::Windows::Forms::Button());
+				 this->IPAddrEdit = (gcnew System::Windows::Forms::TextBox());
+				 this->PortEdit = (gcnew System::Windows::Forms::TextBox());
+				 this->ConnectBtn = (gcnew System::Windows::Forms::Button());
 				 this->textBox3 = (gcnew System::Windows::Forms::TextBox());
 				 this->button2 = (gcnew System::Windows::Forms::Button());
-				 this->textBox4 = (gcnew System::Windows::Forms::TextBox());
-				 this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
+				 this->ProgLog = (gcnew System::Windows::Forms::TextBox());
+				 this->ChannelNum = (gcnew System::Windows::Forms::ComboBox());
+				 this->AttNum = (gcnew System::Windows::Forms::NumericUpDown());
+				 this->SendParamBtn = (gcnew System::Windows::Forms::Button());
+				 this->ConnTest = (gcnew System::Windows::Forms::Timer(this->components));
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->AttNum))->BeginInit();
 				 this->SuspendLayout();
 				 // 
-				 // textBox1
+				 // IPAddrEdit
 				 // 
-				 this->textBox1->Location = System::Drawing::Point(12, 12);
-				 this->textBox1->Name = L"textBox1";
-				 this->textBox1->Size = System::Drawing::Size(105, 20);
-				 this->textBox1->TabIndex = 0;
-				 this->textBox1->Text = L"192.168.1.44";
+				 this->IPAddrEdit->Location = System::Drawing::Point(12, 12);
+				 this->IPAddrEdit->Name = L"IPAddrEdit";
+				 this->IPAddrEdit->Size = System::Drawing::Size(105, 20);
+				 this->IPAddrEdit->TabIndex = 0;
+				 this->IPAddrEdit->Text = L"192.168.1.44";
 				 // 
-				 // textBox2
+				 // PortEdit
 				 // 
-				 this->textBox2->Location = System::Drawing::Point(123, 12);
-				 this->textBox2->Name = L"textBox2";
-				 this->textBox2->Size = System::Drawing::Size(73, 20);
-				 this->textBox2->TabIndex = 1;
-				 this->textBox2->Text = L"4550";
+				 this->PortEdit->Location = System::Drawing::Point(123, 12);
+				 this->PortEdit->Name = L"PortEdit";
+				 this->PortEdit->Size = System::Drawing::Size(73, 20);
+				 this->PortEdit->TabIndex = 1;
+				 this->PortEdit->Text = L"4550";
 				 // 
-				 // button1
+				 // ConnectBtn
 				 // 
-				 this->button1->Location = System::Drawing::Point(202, 12);
-				 this->button1->Name = L"button1";
-				 this->button1->Size = System::Drawing::Size(75, 23);
-				 this->button1->TabIndex = 2;
-				 this->button1->Text = L"button1";
-				 this->button1->UseVisualStyleBackColor = true;
-				 this->button1->Click += gcnew System::EventHandler(this, &mainform::button1_Click);
+				 this->ConnectBtn->Location = System::Drawing::Point(202, 12);
+				 this->ConnectBtn->Name = L"ConnectBtn";
+				 this->ConnectBtn->Size = System::Drawing::Size(83, 20);
+				 this->ConnectBtn->TabIndex = 2;
+				 this->ConnectBtn->Text = L"Соединение";
+				 this->ConnectBtn->UseVisualStyleBackColor = true;
+				 this->ConnectBtn->Click += gcnew System::EventHandler(this, &mainform::button1_Click);
 				 // 
 				 // textBox3
 				 // 
-				 this->textBox3->Location = System::Drawing::Point(12, 38);
+				 this->textBox3->Location = System::Drawing::Point(487, 38);
 				 this->textBox3->Multiline = true;
 				 this->textBox3->Name = L"textBox3";
 				 this->textBox3->Size = System::Drawing::Size(184, 78);
@@ -110,7 +122,7 @@ namespace WindowsClient {
 				 // 
 				 // button2
 				 // 
-				 this->button2->Location = System::Drawing::Point(202, 93);
+				 this->button2->Location = System::Drawing::Point(487, 9);
 				 this->button2->Name = L"button2";
 				 this->button2->Size = System::Drawing::Size(75, 23);
 				 this->button2->TabIndex = 4;
@@ -118,33 +130,63 @@ namespace WindowsClient {
 				 this->button2->UseVisualStyleBackColor = true;
 				 this->button2->Click += gcnew System::EventHandler(this, &mainform::button2_Click);
 				 // 
-				 // textBox4
+				 // ProgLog
 				 // 
-				 this->textBox4->Location = System::Drawing::Point(12, 139);
-				 this->textBox4->Multiline = true;
-				 this->textBox4->Name = L"textBox4";
-				 this->textBox4->Size = System::Drawing::Size(446, 165);
-				 this->textBox4->TabIndex = 5;
+				 this->ProgLog->Location = System::Drawing::Point(12, 110);
+				 this->ProgLog->Multiline = true;
+				 this->ProgLog->Name = L"ProgLog";
+				 this->ProgLog->Size = System::Drawing::Size(446, 165);
+				 this->ProgLog->TabIndex = 5;
 				 // 
-				 // timer1
+				 // ChannelNum
 				 // 
-				 this->timer1->Interval = 10;
-				 this->timer1->Tick += gcnew System::EventHandler(this, &mainform::timer1_Tick);
+				 this->ChannelNum->FormattingEnabled = true;
+				 this->ChannelNum->Location = System::Drawing::Point(12, 57);
+				 this->ChannelNum->Name = L"ChannelNum";
+				 this->ChannelNum->Size = System::Drawing::Size(135, 21);
+				 this->ChannelNum->TabIndex = 6;
+				 // 
+				 // AttNum
+				 // 
+				 this->AttNum->Location = System::Drawing::Point(12, 84);
+				 this->AttNum->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 35, 0, 0, 0 });
+				 this->AttNum->Name = L"AttNum";
+				 this->AttNum->Size = System::Drawing::Size(135, 20);
+				 this->AttNum->TabIndex = 7;
+				 // 
+				 // SendParamBtn
+				 // 
+				 this->SendParamBtn->Location = System::Drawing::Point(153, 57);
+				 this->SendParamBtn->Name = L"SendParamBtn";
+				 this->SendParamBtn->Size = System::Drawing::Size(75, 47);
+				 this->SendParamBtn->TabIndex = 8;
+				 this->SendParamBtn->Text = L"Установить";
+				 this->SendParamBtn->UseVisualStyleBackColor = true;
+				 this->SendParamBtn->Click += gcnew System::EventHandler(this, &mainform::SendParamBtn_Click);
+				 // 
+				 // ConnTest
+				 // 
+				 this->ConnTest->Interval = 1000;
+				 this->ConnTest->Tick += gcnew System::EventHandler(this, &mainform::ConnTest_Tick);
 				 // 
 				 // mainform
 				 // 
 				 this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 				 this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-				 this->ClientSize = System::Drawing::Size(470, 316);
-				 this->Controls->Add(this->textBox4);
+				 this->ClientSize = System::Drawing::Size(679, 289);
+				 this->Controls->Add(this->SendParamBtn);
+				 this->Controls->Add(this->AttNum);
+				 this->Controls->Add(this->ChannelNum);
+				 this->Controls->Add(this->ProgLog);
 				 this->Controls->Add(this->button2);
 				 this->Controls->Add(this->textBox3);
-				 this->Controls->Add(this->button1);
-				 this->Controls->Add(this->textBox2);
-				 this->Controls->Add(this->textBox1);
+				 this->Controls->Add(this->ConnectBtn);
+				 this->Controls->Add(this->PortEdit);
+				 this->Controls->Add(this->IPAddrEdit);
 				 this->Name = L"mainform";
 				 this->Text = L"mainform";
 				 this->FormClosed += gcnew System::Windows::Forms::FormClosedEventHandler(this, &mainform::mainform_FormClosed);
+				 (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->AttNum))->EndInit();
 				 this->ResumeLayout(false);
 				 this->PerformLayout();
 
@@ -153,6 +195,7 @@ namespace WindowsClient {
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e);
 	private: System::Void mainform_FormClosed(System::Object^  sender, System::Windows::Forms::FormClosedEventArgs^  e);
-	private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void SendParamBtn_Click(System::Object^  sender, System::EventArgs^  e);
+	private: System::Void ConnTest_Tick(System::Object^  sender, System::EventArgs^  e);
 	};
 }
