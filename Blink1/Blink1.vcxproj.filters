@@ -12,18 +12,18 @@
     <ClCompile Include="main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="sock_serv.cpp">
+    <ClCompile Include="SPI_DRV.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="SPI_DRV.cpp">
+    <ClCompile Include="threading.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sock_serv.h">
+    <ClInclude Include="SPI_DRV.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="SPI_DRV.h">
+    <ClInclude Include="threading.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
