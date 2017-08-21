@@ -4,28 +4,34 @@
 namespace Threading {	
 	using namespace std;
 
+	class TCPReciverThread;
+	class TCPServerThread;
+
+	bool Verify(char* buf, size_t size);
+	void CalcSum(char* buf, size_t size);
 	void* SocketServer(void* threadID);
+	TCPServerThread** GetServerThreadP();
 
 	class Thread {
 	protected:
+		pthread_mutex_t* start_mutex;
 		pthread_t threadHandle;
 	public:
+		void Start();
 		Thread(void*(func)(void*));
 		~Thread();
-		pthread_t getHandle();
+		pthread_t GetThrdHandle();
 		int Join();
 	};
 
 	class TCPServerThread : virtual public Thread {
 	private:
+	protected:
+	public:
 		int listener;
 		int port;
 
-	protected:
-	public:
-		static int* pListener;
-		static int* pPort;
-		TCPServerThread(int _port) : Thread(Threading::SocketServer) { port = _port; pPort = &port; pListener = &listener; }
+		TCPServerThread(int _port) : Thread(Threading::SocketServer) { port = _port; }
 		~TCPServerThread();
 	};
 
@@ -50,10 +56,5 @@ namespace Threading {
 		~TCPReciverThread();
 	};
 
-	//vector<string> outStrs;
-	bool Verify(char* buf, size_t size);
-	void CalcSum(char* buf, size_t size);
-	
-	//typedef int SOCK_HANDLE;
 }
 #endif	//#ifndef _THREADING_H_

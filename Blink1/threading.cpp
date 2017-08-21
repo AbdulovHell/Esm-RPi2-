@@ -10,15 +10,18 @@
 #include <wiringSerial.h>
 #include "threading.h"
 
-Threading::TCPReciverThread* Listeners;
+vector<Threading::TCPReciverThread*> Listeners;
+Threading::TCPServerThread* Server;
 
-//Threading::Thread::Thread()
-//{
-//}
+void Threading::Thread::Start()
+{
+	pthread_mutex_unlock(start_mutex);
+}
 
 Threading::Thread::Thread(void*(func)(void*))
 {
-	pthread_create(&threadHandle, NULL, func, NULL);
+	pthread_mutex_init(start_mutex, NULL);
+	pthread_create(&threadHandle, NULL, func, start_mutex);
 }
 
 Threading::Thread::~Thread()
@@ -26,7 +29,7 @@ Threading::Thread::~Thread()
 	pthread_cancel(threadHandle);
 }
 
-pthread_t Threading::Thread::getHandle()
+pthread_t Threading::Thread::GetThrdHandle()
 {
 	return threadHandle;
 }
@@ -36,37 +39,43 @@ int Threading::Thread::Join()
 	return pthread_join(threadHandle, NULL);
 }
 
-void* Threading::SocketServer(void * threadID)
+void* Threading::SocketServer(void * param)
 {
+	pthread_mutex_t* mutex = (pthread_mutex_t*)param;
+	pthread_mutex_lock(mutex);
 	struct sockaddr_in addr;
-	printf("Server start on %d port\n", *Threading::TCPServerThread::pPort);
-	*Threading::TCPServerThread::pListener = socket(AF_INET, SOCK_STREAM, 0);
-	if (*Threading::TCPServerThread::pListener < 0)
+	printf("Server start on %d port\n", Server->port);
+	Server->listener = socket(AF_INET, SOCK_STREAM, 0);
+	if (Server->listener < 0)
 	{
 		perror("socket");
 		exit(1);
 	}
 
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(*Threading::TCPServerThread::pPort);
+	addr.sin_port = htons(Server->port);
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	if (bind(*Threading::TCPServerThread::pListener, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+	if (bind(Server->listener, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
 		perror("bind");
 		exit(2);
 	}
 
-	listen(*Threading::TCPServerThread::pListener, 5);
+	listen(Server->listener, 5);
 	int tempsock;
 
 	while (1) {
-		tempsock = accept(*Threading::TCPServerThread::pListener, NULL, NULL);
+		tempsock = accept(Server->listener, NULL, NULL);
 		if (tempsock < 0) {
 			perror("accept");
 			exit(3);
 		}
-		//Threading::Listeners.push_back(new TCPReciverThread(tempsock));
-		Listeners = new TCPReciverThread(tempsock);
+		Listeners.push_back(new TCPReciverThread(tempsock));
 	}
+}
+
+Threading::TCPServerThread** Threading::GetServerThreadP()
+{
+	return &Server;
 }
 
 Threading::TCPServerThread::~TCPServerThread()
