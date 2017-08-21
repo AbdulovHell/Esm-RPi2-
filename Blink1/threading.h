@@ -4,6 +4,8 @@
 namespace Threading {	
 	using namespace std;
 
+	void* SocketServer(void* threadID);
+
 	class Thread {
 	protected:
 		pthread_t threadHandle;
@@ -16,14 +18,15 @@ namespace Threading {
 
 	class TCPServerThread : virtual public Thread {
 	private:
-		static int listener;
-		static struct sockaddr_in addr;
-		static int port;
+		int listener;
+		int port;
+
 	protected:
 	public:
-		static void* SocketServer(void* threadID);
-		TCPServerThread(int _port) : Thread(SocketServer) { this->port = _port; }
-		//~TCPServerThread() : ~Thread() {}
+		static int* pListener;
+		static int* pPort;
+		TCPServerThread(int _port) : Thread(Threading::SocketServer) { port = _port; pPort = &port; pListener = &listener; }
+		~TCPServerThread();
 	};
 
 	/*class UARTThread : public Thread {
@@ -40,14 +43,17 @@ namespace Threading {
 		static int reciver;
 		static char buf[1024];
 		static int bytes_read;
+		static void* Recive(void* threadID);
 	protected:
 	public:
-		static void* Recive(void* threadID);
 		TCPReciverThread(int _sock) :Thread(Recive) { reciver = _sock; }
+		~TCPReciverThread();
 	};
 
 	//vector<string> outStrs;
 	bool Verify(char* buf, size_t size);
 	void CalcSum(char* buf, size_t size);
+	
+	//typedef int SOCK_HANDLE;
 }
 #endif	//#ifndef _THREADING_H_

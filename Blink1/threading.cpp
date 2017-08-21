@@ -36,29 +36,30 @@ int Threading::Thread::Join()
 	return pthread_join(threadHandle, NULL);
 }
 
-void* Threading::TCPServerThread::SocketServer(void * threadID)
+void* Threading::SocketServer(void * threadID)
 {
-	printf("Server start on %d port\n", port);
-	listener = socket(AF_INET, SOCK_STREAM, 0);
-	if (listener < 0)
+	struct sockaddr_in addr;
+	printf("Server start on %d port\n", *Threading::TCPServerThread::pPort);
+	*Threading::TCPServerThread::pListener = socket(AF_INET, SOCK_STREAM, 0);
+	if (*Threading::TCPServerThread::pListener < 0)
 	{
 		perror("socket");
 		exit(1);
 	}
 
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
+	addr.sin_port = htons(*Threading::TCPServerThread::pPort);
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	if (bind(listener, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+	if (bind(*Threading::TCPServerThread::pListener, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
 		perror("bind");
 		exit(2);
 	}
 
-	listen(listener, 5);
+	listen(*Threading::TCPServerThread::pListener, 5);
 	int tempsock;
 
 	while (1) {
-		tempsock = accept(listener, NULL, NULL);
+		tempsock = accept(*Threading::TCPServerThread::pListener, NULL, NULL);
 		if (tempsock < 0) {
 			perror("accept");
 			exit(3);
@@ -66,6 +67,11 @@ void* Threading::TCPServerThread::SocketServer(void * threadID)
 		//Threading::Listeners.push_back(new TCPReciverThread(tempsock));
 		Listeners = new TCPReciverThread(tempsock);
 	}
+}
+
+Threading::TCPServerThread::~TCPServerThread()
+{
+	pthread_cancel(threadHandle);
 }
 
 //Threading::TCPServerThread::TCPServerThread(int _port)
@@ -152,4 +158,8 @@ void Threading::CalcSum(char * buf, size_t size_of_msg)
 	}
 	buf[size_of_msg - 1] = CK_B;
 	buf[size_of_msg - 2] = CK_A;
+}
+
+Threading::TCPReciverThread::~TCPReciverThread()
+{
 }
