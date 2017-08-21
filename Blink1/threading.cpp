@@ -36,30 +36,30 @@ int Threading::Thread::Join()
 	return pthread_join(threadHandle, NULL);
 }
 
-void* Threading::SocketServer(void * threadID)
+void* Threading::TCPServerThread::SocketServer(void * threadID)
 {
 	struct sockaddr_in addr;
-	printf("Server start on %d port\n", *Threading::TCPServerThread::pPort);
-	*Threading::TCPServerThread::pListener = socket(AF_INET, SOCK_STREAM, 0);
-	if (*Threading::TCPServerThread::pListener < 0)
+	printf("Server start on %d port\n", Threading::TCPServerThread::port);
+	Threading::TCPServerThread::listener = socket(AF_INET, SOCK_STREAM, 0);
+	if (Threading::TCPServerThread::listener < 0)
 	{
 		perror("socket");
 		exit(1);
 	}
 
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(*Threading::TCPServerThread::pPort);
+	addr.sin_port = htons(Threading::TCPServerThread::port);
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	if (bind(*Threading::TCPServerThread::pListener, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+	if (bind(Threading::TCPServerThread::listener, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
 		perror("bind");
 		exit(2);
 	}
 
-	listen(*Threading::TCPServerThread::pListener, 5);
+	listen(Threading::TCPServerThread::listener, 5);
 	int tempsock;
 
 	while (1) {
-		tempsock = accept(*Threading::TCPServerThread::pListener, NULL, NULL);
+		tempsock = accept(Threading::TCPServerThread::listener, NULL, NULL);
 		if (tempsock < 0) {
 			perror("accept");
 			exit(3);

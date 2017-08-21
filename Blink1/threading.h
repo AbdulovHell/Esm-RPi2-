@@ -4,8 +4,6 @@
 namespace Threading {	
 	using namespace std;
 
-	void* SocketServer(void* threadID);
-
 	class Thread {
 	protected:
 		pthread_t threadHandle;
@@ -18,14 +16,12 @@ namespace Threading {
 
 	class TCPServerThread : virtual public Thread {
 	private:
-		int listener;
-		int port;
-
+		static int listener;
+		static int port;
+		static void* SocketServer(void* threadID);
 	protected:
 	public:
-		static int* pListener;
-		static int* pPort;
-		TCPServerThread(int _port) : Thread(Threading::SocketServer) { port = _port; pPort = &port; pListener = &listener; }
+		TCPServerThread(int _port) : Thread(SocketServer) { port = _port; }
 		~TCPServerThread();
 	};
 
