@@ -1,5 +1,5 @@
 #include <wiringPi.h>
-//#include <wiringPiSPI.h>
+#include <wiringPiSPI.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -10,18 +10,17 @@
 #include <vector>
 #include <iostream>
 #include "threading.h"
-#include "SPI_DRV.h"
 // Контакт LED — контакт 0 wiringPi равен BCM_GPIO 17.
 // При инициализации с использованием wiringPiSetupSys нужно применять нумерацию BCM
 // При выборе другого ПИН-кода используйте нумерацию BCM, также
 // обновите команду "Страницы свойств" — "События сборки" — "Удаленное событие после сборки". 
 // , которая использует gpio export для настройки значений для wiringPiSetupSys
 
-using namespace Threading;
+//using namespace Threading;
 
 int main(int argc, char* argv[])
 {
-	TCPServerThread* thrd = NULL;
+	Threading::TCPServerThread* thrd = NULL;
 	int channel = 6;
 	int att = 0;
 	int port = 4550;
@@ -60,7 +59,7 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
-	thrd = new TCPServerThread(port);
+	thrd = new Threading::TCPServerThread(port);
 	printf("Initial setup... Channel:%d Att:%d\n", channel, att);
 	//system("gpio export 27 output && gpio export 17 output && gpio export 22 output && gpio export 26 output && gpio export 19 output && gpio export 13 output && gpio export 6 output");
 	//system("gpio load spi");
@@ -80,13 +79,13 @@ int main(int argc, char* argv[])
 	//lcdPrintf(fd, "message");
 	while (true)
 	{
-		if (outStrs.size()) {
-			//pause threads
-			for(int i=0;i<outStrs.size();i++)
-				cout << outStrs[i];
-			outStrs.clear();
-			//resume
-		}
+		//if (outStrs.size()) {
+		//	//pause threads
+		//	for(int i=0;i<outStrs.size();i++)
+		//		cout << outStrs[i];
+		//	outStrs.clear();
+		//	//resume
+		//}
 		//printf("input ");
 		//scanf("%s",buf);
 		//sprintf(wBuf, "asdasdjhakhw");
