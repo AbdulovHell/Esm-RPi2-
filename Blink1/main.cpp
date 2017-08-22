@@ -58,8 +58,8 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
-	Threading::TCPServerThread** thrd = Threading::GetServerThreadP();
-	*thrd = new Threading::TCPServerThread(port);
+	Threading::TCPServerThread* thrd;
+	thrd = new Threading::TCPServerThread(port);
 	
 	printf("Initial setup... Channel:%d Att:%d\n", channel, att);
 	//system("gpio export 27 output && gpio export 17 output && gpio export 22 output && gpio export 26 output && gpio export 19 output && gpio export 13 output && gpio export 6 output");

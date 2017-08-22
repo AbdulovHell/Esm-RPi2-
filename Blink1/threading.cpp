@@ -10,18 +10,13 @@
 #include <wiringSerial.h>
 #include "threading.h"
 
-vector<Threading::TCPReciverThread*> Listeners;
-Threading::TCPServerThread* Server;
-
-void Threading::Thread::Start()
-{
-	pthread_mutex_unlock(start_mutex);
+namespace Threading {
+	vector<Threading::TCPReciverThread*> Listeners;
 }
 
-Threading::Thread::Thread(void*(func)(void*))
+Threading::Thread::Thread(void*(func)(void*), void* arg)
 {
-	pthread_mutex_init(start_mutex, NULL);
-	pthread_create(&threadHandle, NULL, func, start_mutex);
+	pthread_create(&threadHandle, NULL, func, arg);
 }
 
 Threading::Thread::~Thread()
@@ -39,43 +34,38 @@ int Threading::Thread::Join()
 	return pthread_join(threadHandle, NULL);
 }
 
-void* Threading::SocketServer(void * param)
+void* Threading::TCPServerThread::SocketServer(void * param)
 {
-	pthread_mutex_t* mutex = (pthread_mutex_t*)param;
-	pthread_mutex_lock(mutex);
+	int port = (int)param;
+	int listener = 0;
 	struct sockaddr_in addr;
-	printf("Server start on %d port\n", Server->port);
-	Server->listener = socket(AF_INET, SOCK_STREAM, 0);
-	if (Server->listener < 0)
+	printf("Server start on %d port\n", port);
+	listener = socket(AF_INET, SOCK_STREAM, 0);
+	if (listener < 0)
 	{
 		perror("socket");
 		exit(1);
 	}
 
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(Server->port);
+	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	if (bind(Server->listener, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+	if (bind(listener, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
 		perror("bind");
 		exit(2);
 	}
 
-	listen(Server->listener, 5);
+	listen(listener, 5);
 	int tempsock;
 
 	while (1) {
-		tempsock = accept(Server->listener, NULL, NULL);
+		tempsock = accept(listener, NULL, NULL);
 		if (tempsock < 0) {
 			perror("accept");
 			exit(3);
 		}
 		Listeners.push_back(new TCPReciverThread(tempsock));
 	}
-}
-
-Threading::TCPServerThread** Threading::GetServerThreadP()
-{
-	return &Server;
 }
 
 Threading::TCPServerThread::~TCPServerThread()
@@ -89,8 +79,11 @@ Threading::TCPServerThread::~TCPServerThread()
 //	pthread_create(&threadHandle, NULL, SocketServer, NULL);
 //}
 
-void * Threading::TCPReciverThread::Recive(void * threadID)
+void * Threading::TCPReciverThread::Recive(void * param)
 {
+	int reciver = (int)param;
+	char buf[1024];
+	int bytes_read;
 	while (1) {
 		bytes_read = recv(reciver, buf, 1024, 0);
 		if (bytes_read <= 0) break;
@@ -98,7 +91,7 @@ void * Threading::TCPReciverThread::Recive(void * threadID)
 		if (!Verify(buf, 1024)) break;
 		//обработка
 		switch (buf[1]) {	//type id
-		case 0:
+		case 1:
 		{
 			buf[0] = 'e';
 			buf[1] = 1;
@@ -149,7 +142,7 @@ bool Threading::Verify(char * buf, size_t size)
 	if (len > size - 6) return false;	//если длинна больше размера буфера (херня в len)
 	uint8_t mCK_A = buf[3 + len + 1], mCK_B = buf[3 + len + 2];	//суммы, поставляемые клиентом
 	uint8_t cCK_A = 0, cCK_B = 0;	//наши суммы
-	for (int i = 1; i < (3 + len); i++) {//считаем
+	for (int i = 1; i < (3 + len + 1); i++) {//считаем
 		cCK_A += (uint8_t)buf[i];
 		cCK_B += cCK_A;
 	}

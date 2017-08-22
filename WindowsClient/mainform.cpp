@@ -33,18 +33,12 @@ void WindowsClient::mainform::ReadSocket()
 		if (!Verify(data))
 			this->Invoke(gcnew Action<String^>(this, &mainform::WriteLog), response);
 		else
-			switch (data[2]) {
-			case 0:
+			switch (data[1]) {
+			case 1:
 			{
-				switch (data[3]) {
-				case 0:
-				{
-					initTest = false;
-				}
-				break;
-				default:
-					break;
-				}
+				initTest = false;
+				char txt[3] = { data[4],data[5],0 };
+				this->Invoke(gcnew Action<String^>(this, &mainform::WriteLog), gcnew String(txt));
 			}
 			break;
 			default:
@@ -75,16 +69,14 @@ void WindowsClient::mainform::SendCMD(uint8_t ch, uint8_t att)
 
 void WindowsClient::mainform::Test()
 {
-	array<Byte>^ data = gcnew array<Byte>(8);
+	array<Byte>^ data = gcnew array<Byte>(6);
 	data[0] = 'e';
-	data[1] = 's';
 	//message class
-	data[2] = 0;
-	//message id
-	data[3] = 0;
+	data[1] = 1;
 	//len = 0
-	data[4] = 0;
-	data[5] = 0;
+	data[2] = 0;
+	data[3] = 0;
+
 	CalcSum(data);
 	stream->Write(data, 0, data->Length);
 }
@@ -92,7 +84,7 @@ void WindowsClient::mainform::Test()
 void WindowsClient::mainform::CalcSum(array<Byte>^ dt)
 {
 	uint8_t CK_A = 0, CK_B = 0;
-	for (size_t i = 2; i < dt->Length - 2; i++) {
+	for (size_t i = 1; i < dt->Length - 2; i++) {
 		CK_A += dt[i];
 		CK_B += CK_A;
 	}
@@ -102,17 +94,17 @@ void WindowsClient::mainform::CalcSum(array<Byte>^ dt)
 
 bool WindowsClient::mainform::Verify(array<Byte>^ dt)
 {
-	if (dt[0] != 'e' || dt[1] != 's')
+	if (dt[0] != 'e')
 		return false;
-
-	uint8_t mCK_A = dt[dt->Length - 2], mCK_B = dt[dt->Length - 1];
-	uint8_t CK_A = 0, CK_B = 0;
-	for (size_t i = 2; i < dt->Length - 2; i++) {
-		CK_A += dt[i];
-		CK_B += CK_A;
+	short len = dt[2] + (dt[3] << 8);	//получаем полезную длинну сообщения
+	uint8_t mCK_A = dt[3 + len + 1], mCK_B = dt[3 + len + 2];	//суммы, поставляемые клиентом
+	uint8_t cCK_A = 0, cCK_B = 0;	//наши суммы
+	for (int i = 1; i < (3 + len); i++) {//считаем
+		cCK_A += (uint8_t)dt[i];
+		cCK_B += cCK_A;
 	}
 
-	if (mCK_A != CK_A || mCK_B != CK_B)
+	if (mCK_A != mCK_A || mCK_B != mCK_B)
 		return false;
 
 	return true;

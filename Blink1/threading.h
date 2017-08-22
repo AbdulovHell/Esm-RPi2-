@@ -7,18 +7,16 @@ namespace Threading {
 	class TCPReciverThread;
 	class TCPServerThread;
 
+	extern vector<Threading::TCPReciverThread*> Listeners;
+
 	bool Verify(char* buf, size_t size);
 	void CalcSum(char* buf, size_t size);
-	void* SocketServer(void* threadID);
-	TCPServerThread** GetServerThreadP();
-
+	
 	class Thread {
 	protected:
-		pthread_mutex_t* start_mutex;
 		pthread_t threadHandle;
 	public:
-		void Start();
-		Thread(void*(func)(void*));
+		Thread(void*(func)(void*), void* arg);
 		~Thread();
 		pthread_t GetThrdHandle();
 		int Join();
@@ -26,12 +24,10 @@ namespace Threading {
 
 	class TCPServerThread : virtual public Thread {
 	private:
+		static void* SocketServer(void* threadID);
 	protected:
 	public:
-		int listener;
-		int port;
-
-		TCPServerThread(int _port) : Thread(Threading::SocketServer) { port = _port; }
+		TCPServerThread(int _port) : Thread(SocketServer,(void*)_port) {}
 		~TCPServerThread();
 	};
 
@@ -46,13 +42,10 @@ namespace Threading {
 
 	class TCPReciverThread : virtual public Thread {
 	private:
-		static int reciver;
-		static char buf[1024];
-		static int bytes_read;
 		static void* Recive(void* threadID);
 	protected:
 	public:
-		TCPReciverThread(int _sock) :Thread(Recive) { reciver = _sock; }
+		TCPReciverThread(int _sock) :Thread(Recive,(void*)_sock) { }
 		~TCPReciverThread();
 	};
 
