@@ -51,8 +51,6 @@ namespace WindowsClient {
 		void SendCMD(uint8_t ch, uint8_t att);
 		//Комманда проверки соединения
 		void Test();
-		void CalcSum(array<Byte>^ dt);
-		bool Verify(array<Byte>^ dt);
 		/// <summary>
 		/// Обязательная переменная конструктора.
 		/// </summary>

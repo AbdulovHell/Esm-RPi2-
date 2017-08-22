@@ -9,10 +9,13 @@
 #include <string>
 #include <wiringSerial.h>
 #include "threading.h"
+#include "../src/stuff.h"
 
 namespace Threading {
 	vector<Threading::TCPReciverThread*> Listeners;
 }
+
+using namespace Stuff;
 
 Threading::Thread::Thread(void*(func)(void*), void* arg)
 {
@@ -88,7 +91,7 @@ void * Threading::TCPReciverThread::Recive(void * param)
 		bytes_read = recv(reciver, buf, 1024, 0);
 		if (bytes_read <= 0) break;
 		//проверка
-		if (!Verify(buf, 1024)) break;
+		if (!Verify(buf)) break;
 		//обработка
 		switch (buf[1]) {	//type id
 		case 1:
@@ -134,33 +137,6 @@ void * Threading::TCPReciverThread::Recive(void * param)
 //	}
 //	serialClose(fd);
 //}
-
-bool Threading::Verify(char * buf, size_t size)
-{
-	if (buf[0] != 'e')  return false;	//базовая проверка
-	short len = buf[2] + (buf[3] << 8);	//получаем полезную длинну сообщения
-	if (len > size - 6) return false;	//если длинна больше размера буфера (херня в len)
-	uint8_t mCK_A = buf[3 + len + 1], mCK_B = buf[3 + len + 2];	//суммы, поставляемые клиентом
-	uint8_t cCK_A = 0, cCK_B = 0;	//наши суммы
-	for (int i = 1; i < (3 + len + 1); i++) {//считаем
-		cCK_A += (uint8_t)buf[i];
-		cCK_B += cCK_A;
-	}
-	if ((cCK_A == mCK_A) && (cCK_B == mCK_B)) //сравниваем
-		return true;	//совпали
-	return false;	//облом
-}
-
-void Threading::CalcSum(char * buf, size_t size_of_msg)
-{
-	uint8_t CK_A = 0, CK_B = 0;
-	for (size_t i = 1; i < size_of_msg - 2; i++) {
-		CK_A += buf[i];
-		CK_B += CK_A;
-	}
-	buf[size_of_msg - 1] = CK_B;
-	buf[size_of_msg - 2] = CK_A;
-}
 
 Threading::TCPReciverThread::~TCPReciverThread()
 {

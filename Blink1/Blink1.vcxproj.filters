@@ -15,9 +15,15 @@
     <ClCompile Include="threading.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\stuff.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="threading.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\stuff.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

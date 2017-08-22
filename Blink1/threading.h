@@ -1,7 +1,7 @@
 #ifndef _THREADING_H_
 #define _THREADING_H_
 
-namespace Threading {	
+namespace Threading {
 	using namespace std;
 
 	class TCPReciverThread;
@@ -9,9 +9,6 @@ namespace Threading {
 
 	extern vector<Threading::TCPReciverThread*> Listeners;
 
-	bool Verify(char* buf, size_t size);
-	void CalcSum(char* buf, size_t size);
-	
 	class Thread {
 	protected:
 		pthread_t threadHandle;

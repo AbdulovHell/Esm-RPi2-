@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+
 #include "threading.h"
 // Контакт LED — контакт 0 wiringPi равен BCM_GPIO 17.
 // При инициализации с использованием wiringPiSetupSys нужно применять нумерацию BCM

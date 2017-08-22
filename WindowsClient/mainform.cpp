@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "mainform.h"
+#include "../src/stuff.h"
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -8,6 +9,7 @@ using namespace System::Windows::Forms;
 using namespace System::Data;
 using namespace System::Net;
 using namespace System::Net::Sockets;
+using namespace Stuff;
 
 [STAThreadAttribute]
 void Main(cli::array<String^>^ args) {
@@ -30,7 +32,10 @@ void WindowsClient::mainform::ReadSocket()
 		int bytes = stream->Read(data, 0, data->Length);
 		response = System::Text::Encoding::ASCII->GetString(data, 0, bytes);
 
-		if (!Verify(data))
+		char* temp = new char[bytes];
+		for (int i = 0; i < bytes; i++)
+			temp[i] = data[i];
+		if (!Verify(temp))
 			this->Invoke(gcnew Action<String^>(this, &mainform::WriteLog), response);
 		else
 			switch (data[1]) {
@@ -44,70 +49,46 @@ void WindowsClient::mainform::ReadSocket()
 			default:
 				break;
 			}
+		delete[] temp;
 	}
 }
 
 void WindowsClient::mainform::SendCMD(uint8_t ch, uint8_t att)
 {
-	array<Byte>^ data = gcnew array<Byte>(10);	//2+1+1+2+1+1+2  header+mc+mi+len+ch+att+sum
+	char data[8];
 	//header
 	data[0] = 'e';
-	data[1] = 's';
-	//message class
-	data[2] = 1;
-	//message id
-	data[3] = 0;
+	//message type
+	data[1] = 2;
 	//len = 2
-	data[4] = 2;
-	data[5] = 0;
+	data[2] = 2;
+	data[3] = 0;
 	//ch & att
-	data[6] = ch;
-	data[7] = att;
-	CalcSum(data);
-	stream->Write(data, 0, data->Length);
+	data[4] = ch;
+	data[5] = att;
+	CalcSum(data,8);
+	
+	array<Byte>^ dt = gcnew array<Byte>(8);	//2+1+1+2+1+1+2  header+mc+mi+len+ch+att+sum
+	for (int i = 0; i < 8; i++)
+		dt[i] = data[i];
+	stream->Write(dt, 0, dt->Length);
 }
 
 void WindowsClient::mainform::Test()
 {
-	array<Byte>^ data = gcnew array<Byte>(6);
+	char data[6];
 	data[0] = 'e';
-	//message class
+	//message type
 	data[1] = 1;
 	//len = 0
 	data[2] = 0;
 	data[3] = 0;
-
-	CalcSum(data);
-	stream->Write(data, 0, data->Length);
-}
-
-void WindowsClient::mainform::CalcSum(array<Byte>^ dt)
-{
-	uint8_t CK_A = 0, CK_B = 0;
-	for (size_t i = 1; i < dt->Length - 2; i++) {
-		CK_A += dt[i];
-		CK_B += CK_A;
-	}
-	dt[dt->Length - 1] = CK_B;
-	dt[dt->Length - 2] = CK_A;
-}
-
-bool WindowsClient::mainform::Verify(array<Byte>^ dt)
-{
-	if (dt[0] != 'e')
-		return false;
-	short len = dt[2] + (dt[3] << 8);	//получаем полезную длинну сообщения
-	uint8_t mCK_A = dt[3 + len + 1], mCK_B = dt[3 + len + 2];	//суммы, поставляемые клиентом
-	uint8_t cCK_A = 0, cCK_B = 0;	//наши суммы
-	for (int i = 1; i < (3 + len); i++) {//считаем
-		cCK_A += (uint8_t)dt[i];
-		cCK_B += cCK_A;
-	}
-
-	if (mCK_A != mCK_A || mCK_B != mCK_B)
-		return false;
-
-	return true;
+	CalcSum(data,6);
+	
+	array<Byte>^ dt = gcnew array<Byte>(6);
+	for (int i = 0; i < 6; i++)
+		dt[i] = data[i];
+	stream->Write(dt, 0, dt->Length);
 }
 
 System::Void WindowsClient::mainform::button1_Click(System::Object ^ sender, System::EventArgs ^ e)

@@ -139,9 +139,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\stuff.cpp" />
     <ClCompile Include="mainform.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\stuff.h" />
     <ClInclude Include="mainform.h">
       <FileType>CppForm</FileType>
     </ClInclude>

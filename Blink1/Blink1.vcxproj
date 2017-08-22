@@ -57,10 +57,12 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\stuff.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="threading.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\stuff.h" />
     <ClInclude Include="threading.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
