@@ -139,6 +139,10 @@ namespace WindowsClient {
 				 // ChannelNum
 				 // 
 				 this->ChannelNum->FormattingEnabled = true;
+				 this->ChannelNum->Items->AddRange(gcnew cli::array< System::Object^  >(10) {
+					 L"1", L"2", L"3", L"4", L"5", L"6", L"7", L"8",
+						 L"9", L"10"
+				 });
 				 this->ChannelNum->Location = System::Drawing::Point(12, 57);
 				 this->ChannelNum->Name = L"ChannelNum";
 				 this->ChannelNum->Size = System::Drawing::Size(135, 21);

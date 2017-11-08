@@ -58,12 +58,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\stuff.cpp" />
+    <ClCompile Include="I2C.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SPI.cpp" />
     <ClCompile Include="threading.cpp" />
+    <ClCompile Include="usart.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\stuff.h" />
+    <ClInclude Include="I2C.h" />
+    <ClInclude Include="SPI.h" />
     <ClInclude Include="threading.h" />
+    <ClInclude Include="usart.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>

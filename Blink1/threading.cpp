@@ -7,12 +7,38 @@
 #include <pthread.h>
 #include <vector>
 #include <string>
-#include <wiringSerial.h>
+#include <string.h>
+#include <iostream>
+#include <mutex>
 #include "threading.h"
 #include "../src/stuff.h"
 
 namespace Threading {
 	vector<Threading::TCPReciverThread*> Listeners;
+	vector<Task*> Tasks;
+	std::mutex* ListenersMutex;
+	std::mutex* TasksMutex;
+
+	void * UserInputThread::ProceedInput(void * ptr_null)
+	{
+		char buf[512];
+		printf("INPUT: Start working\n");
+		while (1) {
+			scanf("%s", buf);
+			if (strcmp(buf, "conn") == 0) {
+				printf("Count: %d\n", Listeners.size());
+			}
+			if (strcmp(buf, "quit") == 0) {
+				printf("Terminating threads...\n");
+				//place shutdown task
+			}
+		}
+	}
+
+	UserInputThread::~UserInputThread()
+	{
+		pthread_cancel(threadHandle);
+	}
 }
 
 using namespace Stuff;
@@ -42,7 +68,7 @@ void* Threading::TCPServerThread::SocketServer(void * param)
 	int port = (int)param;
 	int listener = 0;
 	struct sockaddr_in addr;
-	printf("Server start on %d port\n", port);
+	printf("SERVER: Server start on %d port\n", port);
 	listener = socket(AF_INET, SOCK_STREAM, 0);
 	if (listener < 0)
 	{
@@ -67,7 +93,10 @@ void* Threading::TCPServerThread::SocketServer(void * param)
 			perror("accept");
 			exit(3);
 		}
+		printf("SERVER: Accept connection\n");
+		ListenersMutex->lock();
 		Listeners.push_back(new TCPReciverThread(tempsock));
+		ListenersMutex->unlock();
 	}
 }
 
@@ -76,17 +105,14 @@ Threading::TCPServerThread::~TCPServerThread()
 	pthread_cancel(threadHandle);
 }
 
-//Threading::TCPServerThread::TCPServerThread(int _port)
-//{
-//	port = _port;
-//	pthread_create(&threadHandle, NULL, SocketServer, NULL);
-//}
-
 void * Threading::TCPReciverThread::Recive(void * param)
 {
-	int reciver = (int)param;
+	RTData* data = (RTData*)param;
+	int reciver = data->iSocket;
+	bool* stopflag = data->bStopFlag;
 	char buf[1024];
 	int bytes_read;
+	printf("RECV(%d): Start working\n", reciver);
 	while (1) {
 		bytes_read = recv(reciver, buf, 1024, 0);
 		if (bytes_read <= 0) break;
@@ -106,37 +132,22 @@ void * Threading::TCPReciverThread::Recive(void * param)
 			send(reciver, buf, 1024, 0);
 		}
 		break;
+		case 2:
+		{
+			printf("RECV(%d): Place task -> Set ch %d att %d\n", reciver, buf[4], buf[5]);
+			TasksMutex->lock();
+			Tasks.push_back(new Task(buf[5], buf[4]));
+			TasksMutex->unlock();
+		}
+		break;
 		default:
 			break;
 		}
 	}
+	printf("RECV(%d): Stop working\n", reciver);
+	*stopflag = true;
 	close(reciver);
 }
-
-//Threading::TCPReciverThread::TCPReciverThread(int _sock)
-//{
-//	reciver = _sock;
-//	pthread_create(&threadHandle, NULL, Recive, NULL);
-//}
-
-//void * Threading::UARTThread::SendUART(void * threadID)
-//{
-//	int fd = serialOpen("/dev/ttyAMA0", 9600);
-//	if (fd == -1)
-//		return 0;
-//
-//	while (1) {
-//		read_cnt = serialDataAvail(fd);
-//		if (read_cnt > 0) {
-//			char* buf = new char[read_cnt + 1];
-//			for (int i = 0; i < read_cnt; i++)
-//				buf[i] = serialGetchar(fd);
-//			buf[read_cnt] = 0;
-//			serialPuts(fd, buf);
-//		}
-//	}
-//	serialClose(fd);
-//}
 
 Threading::TCPReciverThread::~TCPReciverThread()
 {

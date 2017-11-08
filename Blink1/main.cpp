@@ -1,5 +1,4 @@
 #include <wiringPi.h>
-#include <wiringPiSPI.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,15 +8,23 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <mutex>
+#include <unistd.h>
 
 #include "threading.h"
+#include "usart.h"
+#include "I2C.h"
 // Контакт LED — контакт 0 wiringPi равен BCM_GPIO 17.
 // При инициализации с использованием wiringPiSetupSys нужно применять нумерацию BCM
 // При выборе другого ПИН-кода используйте нумерацию BCM, также
 // обновите команду "Страницы свойств" — "События сборки" — "Удаленное событие после сборки". 
 // , которая использует gpio export для настройки значений для wiringPiSetupSys
 
-//using namespace Threading;
+//#define UART_TEST //успешно
+#define I2C_TEST	//успешно
+//#define SPI_TEST	//
+
+using namespace Threading;
 
 int main(int argc, char* argv[])
 {
@@ -59,28 +66,83 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
-	Threading::TCPServerThread* thrd;
-	thrd = new Threading::TCPServerThread(port);
-	
-	printf("Initial setup... Channel:%d Att:%d\n", channel, att);
-	//system("gpio export 27 output && gpio export 17 output && gpio export 22 output && gpio export 26 output && gpio export 19 output && gpio export 13 output && gpio export 6 output");
-	//system("gpio load spi");
-	//int ec = wiringPiSetupSys();
-	//digitalWrite(RW, LOW);
+	ListenersMutex = new mutex();
+	TasksMutex = new mutex();
+	TCPServerThread* thrd;
+	thrd = new TCPServerThread(port);
 
-	/*if (SPISetup(0, 625000, 0) == -1) {
-		printf("error init spi");
-		return 1;
-	}*/
-	/*char* rBuf=new char[25];
-	char* wBuf=new char[25];
-	memset(wBuf,0xf5,25);
-	memset(rBuf, '0', 25);
-	wBuf[0] = 0xF5;*/
-	//int fd = lcdInit(16, 2, 4, RS, E, 0, 0, 0, 0, DB4, DB5, DB6, DB7);
-	//lcdPrintf(fd, "message");
+	printf("MAIN: Initial setup... Channel:%d Att:%d\n", channel, att);
+	Tasks.push_back(new Task(att, channel));
+	system("gpio export 27 output && gpio export 17 output && gpio export 22 output && gpio export 26 output && gpio export 19 output && gpio export 13 output && gpio export 6 output");
+	//device tree enabled
+	//system("gpio load spi");
+	//system("gpio load i2c");
+	int ec = wiringPiSetupSys();
+
+	UserInputThread* inThrd;
+	inThrd = new UserInputThread();
+
+#ifdef UART_TEST
+	IO::Usart dev(9600);
+	if (!dev.IsOpen())
+		cout << dev.GetError() << endl;
+	int size = 0;
+#endif
+
+#ifdef I2C_TEST
+	IO::I2C dev(0x4b);
+	if (!dev.IsOpen())
+		cout << dev.GetError() << endl;
+
+	uint64_t cnt = 0;
+#endif
+
 	while (true)
 	{
+		TasksMutex->lock();
+		int size = Tasks.size();
+		if (size > 0) {
+			char buf[128];
+			memset(buf, 0, 128);
+			sprintf(buf, "MAIN: Set channel: %d Att: %d", Tasks[0]->Ch(), Tasks[0]->Att());
+			cout << buf << endl;
+			Tasks.erase(Tasks.begin());
+		}
+		TasksMutex->unlock();
+
+		ListenersMutex->lock();
+		vector<Threading::TCPReciverThread*>::iterator itRecv = Listeners.begin();
+		for (int i = 0; i < Listeners.size(); i++, itRecv++) {
+			if (Listeners[i]->Stoped) {
+				Listeners.erase(itRecv);
+			}
+		}
+		ListenersMutex->unlock();
+
+#ifdef UART_TEST
+		//char* buf = new char[32];
+		//memset(buf, 0, 32);
+		//sprintf(buf, "Hello world!\n");
+		//dev.Write(buf, strlen(buf));
+		if (size = dev.DataAvail() > 0) {
+			char* rBuf = new char[size];
+			dev.Read(rBuf, size);
+			cout << rBuf << endl;
+
+			dev.Write(rBuf, size);
+			delete[] rBuf;
+		}
+#endif
+
+#ifdef I2C_TEST
+		//int data = dev.Read();
+		uint8_t dt[6] = { cnt % 2,cnt % 3,cnt % 5,cnt % 7,cnt % 11,cnt % 13 };
+		if (cnt % 5000000 == 0) {
+			dev.Write(dt, 6);
+		}
+		cnt++;
+#endif
+
 		//if (outStrs.size()) {
 		//	//pause threads
 		//	for(int i=0;i<outStrs.size();i++)
@@ -95,13 +157,7 @@ int main(int argc, char* argv[])
 		//	break;
 		//}
 		//else {
-		/*int ret = SPIDataRW(0, (unsigned char*)rBuf, (unsigned char*)wBuf, 25);
-		uint32_t sym = 0;
-		for (int i = 0; i < 25; i++)
-			sym += rBuf[i];
-		if (sym > 0)
-			printf("%s\n", rBuf);
-		*///}
+		//}
 	}
 	return 0;
 }

@@ -18,12 +18,30 @@
     <ClCompile Include="..\src\stuff.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="usart.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="I2C.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SPI.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="threading.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\src\stuff.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="usart.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="I2C.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SPI.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
