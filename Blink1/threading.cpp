@@ -1,4 +1,4 @@
-#include <sys/types.h>
+﻿#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -9,9 +9,14 @@
 #include <string>
 #include <string.h>
 #include <iostream>
+#include <wchar.h>
 #include <mutex>
+#include "../Blink1/Colorize.h"
 #include "threading.h"
 #include "../src/stuff.h"
+#include <list>
+#include "LCD.h"
+#include "Screen.h"
 
 namespace Threading {
 	vector<Threading::TCPReciverThread*> Listeners;
@@ -22,7 +27,7 @@ namespace Threading {
 	void * UserInputThread::ProceedInput(void * ptr_null)
 	{
 		char buf[512];
-		printf("INPUT: Start working\n");
+		printf("%s: Start working\n", Stuff::MakeColor("INPUT", Stuff::Blue).c_str());
 		while (1) {
 			scanf("%s", buf);
 			if (strcmp(buf, "conn") == 0) {
@@ -31,11 +36,63 @@ namespace Threading {
 			if (strcmp(buf, "quit") == 0) {
 				printf("Terminating threads...\n");
 				//place shutdown task
+				printf("%s: Place task -> Quit\n", Stuff::MakeColor("INPUT", Stuff::Blue).c_str());
+				TasksMutex->lock();
+				Tasks.push_back(new TaskQuit());
+				TasksMutex->unlock();
 			}
 		}
 	}
 
 	UserInputThread::~UserInputThread()
+	{
+		pthread_cancel(threadHandle);
+	}
+	void * LCDControlThread::ManageLCD(void * ptr_null)
+	{
+		LCD::Display* disp = new LCD::Display();
+		disp->Init();
+		disp->Power(1, LCD::Display::Cursor::NoCursor_NoFlashing);
+		//char buf[20] = { 'R','a','s' ,'p' ,'b' ,'e' ,'r' ,'r','y' ,0x20 ,'P' ,'i' ,0x20 ,0x01 ,0x20 ,0x20 ,0x20 ,0x20 ,0x20 ,0x20 };
+		//memset(buf, 0x20, 20);
+		//sprintf(buf, "<------->");
+		//buf[strlen(buf)] = 0x20;
+
+		LCD::CustomSymbol space = { 0,0,0,0,0,0,0,0 };
+		disp->LoadSymbol(space, 0);
+		LCD::CustomSymbol face = { 0b01110,0b10001,0b11011,0b10001,0b10101,0b10001,0b01110,0b00000 };
+		disp->LoadSymbol(face, 1);
+
+		LCD::Screen* main_menu = new LCD::Screen(disp);
+		main_menu->AddLine(new LCD::LCDString(L"Главное меню", LCD::LCDString::Alignment::Center));
+		main_menu->AddLine(new LCD::LCDString(L" Частота"));
+		main_menu->AddLine(new LCD::LCDString(L" Канал", LCD::LCDString::Alignment::Left));
+		main_menu->AddLine(new LCD::LCDString(L"Выкл.", LCD::LCDString::Alignment::Right));
+		//disp.SetScreen(main_menu);
+
+		//char text[] = "  1234567890  -+/*!?";
+		//LCD::Screen scr;
+		//scr.SetLine(0, buf);
+		//scr.SetLine(1, text);
+		//scr.SetLine(2, buf);
+		//scr.SetLine(3, buf);
+		//auto start = std::chrono::high_resolution_clock::now();
+		//disp.SetScreen(scr);
+		//auto end = std::chrono::high_resolution_clock::now();
+		//std::chrono::duration<double, std::milli> elapsed = end - start;
+		//sprintf(text, "time, ms: %6.3f", elapsed.count());
+		//scr.SetLine(3, text);
+		//disp.SetScreen(scr);
+		//std::this_thread::sleep_for(std::chrono::seconds(1));
+		while (1) {
+			//char temp = buf[19];
+			//for (int i = 19; i > 0; i--)
+			//	buf[i] = buf[i - 1];
+			//buf[0] = temp;
+			//std::this_thread::sleep_for(std::chrono::seconds(1));
+		}
+	}
+	LCDControlThread::~LCDControlThread()
 	{
 		pthread_cancel(threadHandle);
 	}
@@ -65,10 +122,10 @@ int Threading::Thread::Join()
 
 void* Threading::TCPServerThread::SocketServer(void * param)
 {
-	int port = (int)param;
+	uint16_t port = (uint16_t)(int)param;
 	int listener = 0;
 	struct sockaddr_in addr;
-	printf("SERVER: Server start on %d port\n", port);
+	printf("%s: Server start on %d port\n", Stuff::MakeColor("SERVER", Stuff::Red).c_str(), port);
 	listener = socket(AF_INET, SOCK_STREAM, 0);
 	if (listener < 0)
 	{
@@ -93,7 +150,7 @@ void* Threading::TCPServerThread::SocketServer(void * param)
 			perror("accept");
 			exit(3);
 		}
-		printf("SERVER: Accept connection\n");
+		printf("%s: Accept connection\n", Stuff::MakeColor("SERVER", Stuff::Red).c_str());
 		ListenersMutex->lock();
 		Listeners.push_back(new TCPReciverThread(tempsock));
 		ListenersMutex->unlock();
@@ -112,13 +169,13 @@ void * Threading::TCPReciverThread::Recive(void * param)
 	bool* stopflag = data->bStopFlag;
 	char buf[1024];
 	int bytes_read;
-	printf("RECV(%d): Start working\n", reciver);
+	printf("%s(%d): Start working\n", Stuff::MakeColor("RECV", Stuff::Yellow).c_str(), reciver);
 	while (1) {
 		bytes_read = recv(reciver, buf, 1024, 0);
 		if (bytes_read <= 0) break;
-		//��������
+		//проверка
 		if (!Verify(buf)) break;
-		//���������
+		//обработка
 		switch (buf[1]) {	//type id
 		case 1:
 		{
@@ -134,9 +191,9 @@ void * Threading::TCPReciverThread::Recive(void * param)
 		break;
 		case 2:
 		{
-			printf("RECV(%d): Place task -> Set ch %d att %d\n", reciver, buf[4], buf[5]);
+			printf("%s(%d): Place task -> Set ch %d att %d\n", Stuff::MakeColor("RECV", Stuff::Yellow).c_str(), reciver, buf[4], buf[5]);
 			TasksMutex->lock();
-			Tasks.push_back(new Task(buf[5], buf[4]));
+			Tasks.push_back(new TaskSetAttCh(buf[5], buf[4]));
 			TasksMutex->unlock();
 		}
 		break;
@@ -144,9 +201,10 @@ void * Threading::TCPReciverThread::Recive(void * param)
 			break;
 		}
 	}
-	printf("RECV(%d): Stop working\n", reciver);
+	printf("%s(%d): Stop working\n", Stuff::MakeColor("RECV", Stuff::Yellow).c_str(), reciver);
 	*stopflag = true;
 	close(reciver);
+	return 0;
 }
 
 Threading::TCPReciverThread::~TCPReciverThread()

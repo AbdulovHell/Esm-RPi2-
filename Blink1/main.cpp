@@ -14,6 +14,9 @@
 #include "threading.h"
 #include "usart.h"
 #include "I2C.h"
+#include "SPI.h"
+#include "Colorize.h"
+//#include "LCD.h"
 // Контакт LED — контакт 0 wiringPi равен BCM_GPIO 17.
 // При инициализации с использованием wiringPiSetupSys нужно применять нумерацию BCM
 // При выборе другого ПИН-кода используйте нумерацию BCM, также
@@ -28,9 +31,16 @@ using namespace Threading;
 
 int main(int argc, char* argv[])
 {
+	bool Working = true;
 	int channel = 6;
 	int att = 0;
 	int port = 4550;
+
+	//for (int i = 2; i < 71; i++) {
+	//	printf("\033[0;%dm%d\033[0m\n",i,i);
+	//}
+	//return 0;
+
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-h") == 0) {
 			printf("Esminec main programm, possible params:\n-h	-	help message\n-p <number>	-	set TCP server port number(200...50000)\n-ch <number>	-	set initial channel value(1...20)\n-at <number>	-	set initial attenuation value(0...35)\n\n");
@@ -71,13 +81,16 @@ int main(int argc, char* argv[])
 	TCPServerThread* thrd;
 	thrd = new TCPServerThread(port);
 
-	printf("MAIN: Initial setup... Channel:%d Att:%d\n", channel, att);
-	Tasks.push_back(new Task(att, channel));
-	system("gpio export 27 output && gpio export 17 output && gpio export 22 output && gpio export 26 output && gpio export 19 output && gpio export 13 output && gpio export 6 output");
+	printf("%s: Initial setup... Channel:%d Att:%d\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str(), channel, att);
+	Tasks.push_back(new TaskSetAttCh((uint8_t)att, (uint8_t)channel));
+	//system("gpio export 27 output && gpio export 17 output && gpio export 22 output && gpio export 26 output && gpio export 19 output && gpio export 13 output && gpio export 6 output");
 	//device tree enabled
 	//system("gpio load spi");
 	//system("gpio load i2c");
-	int ec = wiringPiSetupSys();
+	wiringPiSetupSys();
+
+	LCDControlThread* lcdThrd;
+	lcdThrd = new LCDControlThread();
 
 	UserInputThread* inThrd;
 	inThrd = new UserInputThread();
@@ -97,22 +110,56 @@ int main(int argc, char* argv[])
 	uint64_t cnt = 0;
 #endif
 
-	while (true)
+#ifdef SPI_TEST
+	IO::SPI dev(0, 10000);
+#endif
+
+	while (Working)
 	{
+#ifdef SPI_TEST
+		uint8_t buf[2] = {0x55,0xAA};
+		//for (int i = 0; i < 2; i++)
+		//	buf[i] = 10;
+		dev.DataRW(buf, 2);
+#endif
 		TasksMutex->lock();
 		int size = Tasks.size();
 		if (size > 0) {
-			char buf[128];
-			memset(buf, 0, 128);
-			sprintf(buf, "MAIN: Set channel: %d Att: %d", Tasks[0]->Ch(), Tasks[0]->Att());
-			cout << buf << endl;
+			switch (Tasks[0]->GetType())
+			{
+			case TaskType::SetAttCh:
+			{
+				char buf[128];
+				memset(buf, 0, 128);
+				sprintf(buf, "%s: Set channel: %d Att: %d", Stuff::MakeColor("MAIN", Stuff::Green).c_str(), Tasks[0]->Ch(), Tasks[0]->Att());
+				cout << buf << endl;
+			}
+			break;
+			case TaskType::Quit:
+			{
+				Working = false;
+				inThrd->~UserInputThread();
+				thrd->~TCPServerThread();
+				lcdThrd->~LCDControlThread();
+				for (size_t i = 0; i < Listeners.size(); i++) {
+					Listeners[i]->~TCPReciverThread();
+				}
+				char buf[128];
+				memset(buf, 0, 128);
+				sprintf(buf, "%s: Threads stopped", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
+				cout << buf << endl;
+			}
+			break;
+			default:
+				break;
+			}
 			Tasks.erase(Tasks.begin());
 		}
 		TasksMutex->unlock();
 
 		ListenersMutex->lock();
 		vector<Threading::TCPReciverThread*>::iterator itRecv = Listeners.begin();
-		for (int i = 0; i < Listeners.size(); i++, itRecv++) {
+		for (size_t i = 0; i < Listeners.size(); i++, itRecv++) {
 			if (Listeners[i]->Stoped) {
 				Listeners.erase(itRecv);
 			}
@@ -136,7 +183,7 @@ int main(int argc, char* argv[])
 
 #ifdef I2C_TEST
 		//int data = dev.Read();
-		uint8_t dt[6] = { cnt % 2,cnt % 3,cnt % 5,cnt % 7,cnt % 11,cnt % 13 };
+		uint8_t dt[6] = { (uint8_t)(cnt % 2),(uint8_t)(cnt % 3),(uint8_t)(cnt % 5),(uint8_t)(cnt % 7),(uint8_t)(cnt % 11),(uint8_t)(cnt % 13) };
 		if (cnt % 5000000 == 0) {
 			dev.Write(dt, 6);
 		}

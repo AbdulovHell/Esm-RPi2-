@@ -18,7 +18,7 @@ IO::Usart::Usart(int baud)
 void IO::Usart::Write(char * buf, size_t size)
 {
 	if (!opened) return;
-	for (int i = 0; i < size; i++)
+	for (size_t i = 0; i < size; i++)
 		serialPutchar(fd, buf[i]);
 }
 
@@ -31,8 +31,8 @@ int IO::Usart::DataAvail()
 void IO::Usart::Read(char * buf, size_t size)
 {
 	if (!opened) return;
-	for (int i = 0; i < size; i++) {
-		buf[i] = serialGetchar(fd);
+	for (size_t i = 0; i < size; i++) {
+		buf[i] = (char)serialGetchar(fd);
 	}
 }
 

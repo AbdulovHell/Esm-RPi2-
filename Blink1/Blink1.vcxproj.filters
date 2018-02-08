@@ -27,6 +27,15 @@
     <ClCompile Include="SPI.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Colorize.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="LCD.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Screen.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="threading.h">
@@ -42,6 +51,15 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="SPI.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Colorize.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="LCD.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Screen.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

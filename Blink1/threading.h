@@ -13,14 +13,38 @@ namespace Threading {
 	extern std::mutex* ListenersMutex;
 	extern std::mutex* TasksMutex;
 
+	enum TaskType : int {
+		SetAttCh,
+		Quit,
+		Empty
+	};
+
 	class Task {
+	public:
+		Task() {}
+		virtual TaskType GetType() = 0;
+		virtual uint8_t Att() = 0;
+		virtual uint8_t Ch() = 0;
+	};
+
+	class TaskSetAttCh : virtual public Task {
 		uint8_t att;
 		uint8_t ch;
 	public:
-		Task(uint8_t _att, uint8_t _ch) { att = _att; ch = _ch; }
+		TaskSetAttCh(uint8_t _att, uint8_t _ch) { att = _att; ch = _ch;}
 
 		uint8_t Att() { return att; }
 		uint8_t Ch() { return ch; }
+		TaskType GetType() { return TaskType::SetAttCh; }
+	};
+
+	class TaskQuit : virtual public Task {
+	public:
+		TaskQuit() {}
+
+		uint8_t Att() { return 0; }
+		uint8_t Ch() { return 0; }
+		TaskType GetType() { return TaskType::Quit; }
 	};
 
 	class Thread {
@@ -31,7 +55,7 @@ namespace Threading {
 			int iSocket;
 		};
 	public:
-		Thread(){}
+		Thread() {}
 		Thread(void*(func)(void*), void* arg);
 		~Thread();
 		pthread_t GetThrdHandle();
@@ -70,6 +94,14 @@ namespace Threading {
 	public:
 		UserInputThread() :Thread(ProceedInput, (void*)NULL) { }
 		~UserInputThread();
+	};
+
+	class LCDControlThread : virtual public Thread {
+	private:
+		static void* ManageLCD(void* ptr_null);
+	public:
+		LCDControlThread() :Thread(ManageLCD, (void*)NULL) {}
+		~LCDControlThread();
 	};
 }
 #endif	//#ifndef _THREADING_H_
