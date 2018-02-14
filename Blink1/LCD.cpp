@@ -139,6 +139,7 @@ void LCD::Display::EntryModeSet(uint8_t ID, uint8_t SH)
 
 void LCD::Display::Power(uint8_t state, Cursor cursor)
 {
+	CurrentCursorType = cursor;
 	uint8_t msg = 0b00001000;
 	msg |= (uint8_t)(state << 2);
 	msg |= (uint8_t)cursor;
@@ -173,6 +174,8 @@ void LCD::Display::WriteDataToRAM(uint8_t msg)
 void LCD::Display::SetCursorPos(int str, int col)
 {
 	if (str < 1 || str>4 || col < 1 || col>20) return;
+	CurrentCol = col;
+	CurrentStr = str;
 	col--;
 	switch (str) {
 	case 1:
@@ -220,16 +223,34 @@ void LCD::Display::LoadSymbol(CustomSymbol symb, uint8_t pos)
 
 void LCD::Display::SetScreen(list<LCDString*>* strs, size_t topline)
 {
-	for (int i = 0; i < 4; i++) {
-		SetCursorPos(i + 1, 1);
-		list<LCDString*>::iterator it = strs->begin();
-		std::advance(it, topline);
+	list<LCDString*>::iterator it = strs->begin();
+	if (topline > 0) std::advance(it, topline);
+	
+	for (size_t i = topline; i < topline + 4 && i < (strs->size()); i++, it++) {
+		SetCursorPos(i - topline + 1, 1);
 		LCDString* str = *it;
 		const char* temp = str->GetString();
 		for (int j = 0; j < 20; j++) {
 			WriteDataToRAM(temp[j]);
 		}
 	}
+
+	/*for (int i = 1; i < 5; i++) {
+		SetCursorPos(i, 1);
+		list<LCDString*>::iterator it = strs->begin();
+
+		LCDString* str;
+		if (*it != 0) {
+			str = *it;
+			const char* temp = str->GetString();
+			for (int j = 0; j < 20; j++) {
+				WriteDataToRAM(temp[j]);
+			}
+		}
+		else {
+
+		}
+	}*/
 }
 
 void LCD::Display::SetCGRAMAddr(int addr)

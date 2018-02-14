@@ -46,15 +46,19 @@ namespace LCD {
 		void Send4Bit(uint8_t byte);
 		void SetDDRAMAddress(int addr);
 		void FunctionSet();
-		void SetCGRAMAddr(int addr);
 
 	public:
+
 		enum class Cursor : int {
 			NoCursor_NoFlashing = 0,
 			NoCursor_SymbolFlashing = 1,
 			Cursor_NoFlashing = 2,
 			Cursor_Flashing = 3
 		};
+
+		int CurrentStr;
+		int CurrentCol;
+		Cursor CurrentCursorType;
 
 		Display();
 		Display(int E, int RS, int D4, int D5, int D6, int D7);
@@ -70,7 +74,8 @@ namespace LCD {
 		void SendText(char* txt, size_t size);
 		void SendText(char txt);
 		void LoadSymbol(CustomSymbol symb, uint8_t pos);
-		void SetScreen(list<LCDString*>* strs,size_t topline);
+		void SetScreen(std::list<LCDString*>* strs, size_t topline);
+		void SetCGRAMAddr(int addr);
 	};
 }
 

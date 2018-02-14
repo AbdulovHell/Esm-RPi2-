@@ -6,46 +6,16 @@ namespace Threading {
 
 	class TCPReciverThread;
 	class TCPServerThread;
-	class Task;
+
+	int LaunchSecretMenu(LCD::Display * disp);
+	void EmulatingKeyboard();
+	void Selfdestruction(LCD::Display * disp);
+	void SnakeGame(LCD::Display * disp);
 
 	extern vector<Threading::TCPReciverThread*> Listeners;
-	extern vector<Task*> Tasks;
+	extern vector<Threading::Task*> MainTasks;
 	extern std::mutex* ListenersMutex;
 	extern std::mutex* TasksMutex;
-
-	enum TaskType : int {
-		SetAttCh,
-		Quit,
-		Empty
-	};
-
-	class Task {
-	public:
-		Task() {}
-		virtual TaskType GetType() = 0;
-		virtual uint8_t Att() = 0;
-		virtual uint8_t Ch() = 0;
-	};
-
-	class TaskSetAttCh : virtual public Task {
-		uint8_t att;
-		uint8_t ch;
-	public:
-		TaskSetAttCh(uint8_t _att, uint8_t _ch) { att = _att; ch = _ch;}
-
-		uint8_t Att() { return att; }
-		uint8_t Ch() { return ch; }
-		TaskType GetType() { return TaskType::SetAttCh; }
-	};
-
-	class TaskQuit : virtual public Task {
-	public:
-		TaskQuit() {}
-
-		uint8_t Att() { return 0; }
-		uint8_t Ch() { return 0; }
-		TaskType GetType() { return TaskType::Quit; }
-	};
 
 	class Thread {
 	protected:

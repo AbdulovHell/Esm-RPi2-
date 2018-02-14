@@ -68,22 +68,29 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\stuff.cpp" />
+    <ClCompile Include="cg.cpp" />
     <ClCompile Include="Colorize.cpp" />
+    <ClCompile Include="Floodgate.cpp" />
     <ClCompile Include="I2C.cpp" />
     <ClCompile Include="LCD.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Screen.cpp" />
     <ClCompile Include="SPI.cpp" />
+    <ClCompile Include="Task.cpp" />
     <ClCompile Include="threading.cpp" />
     <ClCompile Include="usart.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\stuff.h" />
+    <ClInclude Include="cg.h" />
     <ClInclude Include="Colorize.h" />
+    <ClInclude Include="Floodgate.h" />
     <ClInclude Include="I2C.h" />
     <ClInclude Include="LCD.h" />
     <ClInclude Include="Screen.h" />
+    <ClInclude Include="Snake.h" />
     <ClInclude Include="SPI.h" />
+    <ClInclude Include="Task.h" />
     <ClInclude Include="threading.h" />
     <ClInclude Include="usart.h" />
   </ItemGroup>

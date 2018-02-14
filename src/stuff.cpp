@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "stuff.h"
 
 bool Stuff::Verify(char * buf)
@@ -26,5 +28,12 @@ void Stuff::CalcSum(char * buf, size_t size)
 	}
 	buf[size - 1] = CK_B;
 	buf[size - 2] = CK_A;
+}
+
+int Stuff::RangeRand(int min, int max)
+{
+	int rnd = rand();
+	//printf("RR %d	",rnd);
+	return (int)((double)rnd / ((double)RAND_MAX + 1.0)*(max - min) + min);
 }
 

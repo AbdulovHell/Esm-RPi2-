@@ -36,6 +36,15 @@
     <ClCompile Include="Screen.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Task.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Floodgate.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="cg.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="threading.h">
@@ -60,6 +69,18 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Screen.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Task.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Floodgate.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="cg.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Snake.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

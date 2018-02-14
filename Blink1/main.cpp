@@ -10,7 +10,11 @@
 #include <iostream>
 #include <mutex>
 #include <unistd.h>
+#include <list>
 
+#include "Floodgate.h"
+#include "Task.h"
+#include "LCD.h"
 #include "threading.h"
 #include "usart.h"
 #include "I2C.h"
@@ -82,7 +86,7 @@ int main(int argc, char* argv[])
 	thrd = new TCPServerThread(port);
 
 	printf("%s: Initial setup... Channel:%d Att:%d\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str(), channel, att);
-	Tasks.push_back(new TaskSetAttCh((uint8_t)att, (uint8_t)channel));
+	MainTasks.push_back(new TaskSetAttCh((uint8_t)att, (uint8_t)channel));
 	//system("gpio export 27 output && gpio export 17 output && gpio export 22 output && gpio export 26 output && gpio export 19 output && gpio export 13 output && gpio export 6 output");
 	//device tree enabled
 	//system("gpio load spi");
@@ -123,15 +127,15 @@ int main(int argc, char* argv[])
 		dev.DataRW(buf, 2);
 #endif
 		TasksMutex->lock();
-		int size = Tasks.size();
+		int size = MainTasks.size();
 		if (size > 0) {
-			switch (Tasks[0]->GetType())
+			switch (MainTasks[0]->GetType())
 			{
 			case TaskType::SetAttCh:
 			{
 				char buf[128];
 				memset(buf, 0, 128);
-				sprintf(buf, "%s: Set channel: %d Att: %d", Stuff::MakeColor("MAIN", Stuff::Green).c_str(), Tasks[0]->Ch(), Tasks[0]->Att());
+				sprintf(buf, "%s: Set channel: %d Att: %d", Stuff::MakeColor("MAIN", Stuff::Green).c_str(), MainTasks[0]->Ch(), MainTasks[0]->Att());
 				cout << buf << endl;
 			}
 			break;
@@ -153,7 +157,7 @@ int main(int argc, char* argv[])
 			default:
 				break;
 			}
-			Tasks.erase(Tasks.begin());
+			MainTasks.erase(MainTasks.begin());
 		}
 		TasksMutex->unlock();
 

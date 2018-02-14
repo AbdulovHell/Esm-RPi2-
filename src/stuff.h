@@ -4,5 +4,6 @@
 namespace Stuff {
 	bool Verify(char* buf);
 	void CalcSum(char* buf, size_t size);
+	int RangeRand(int min,int max);
 }
 #endif	// _STUFF_H_
