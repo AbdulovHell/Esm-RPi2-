@@ -1,17 +1,14 @@
 #ifndef _SCREEN_H_
 #define _SCREEN_H_
 
-namespace LCD {
+namespace Display {
 	using namespace std;
-
-	extern mutex ScreenMutex;
-	extern vector<Threading::Task*> LCDTasks;
-
+	
 	class Screen {
 		//Указатель на инициализированый дисплей
-		LCD::Display* display;
+		Display* display;
 		//Текущие активные строки дисплея
-		list<LCDString*>* Lines;
+		list<DisplayString*>* Lines;
 		//Количество строк
 		int LinesCount;
 		//Нужна ли прокрутка
@@ -33,13 +30,13 @@ namespace LCD {
 		void DrawScrollBar();
 
 	public:
-		Screen(LCD::Display* disp);
+		Screen(Display* disp);
 
-		LCDString* operator[] (size_t c);
+		DisplayString* operator[] (size_t c);
 
-		size_t AddLine(LCDString* txt);
-		size_t AddLine(LCDString* txt, size_t pos);
-		size_t SetLine(LCDString* line, int pos);
+		size_t AddLine(DisplayString* txt);
+		size_t AddLine(DisplayString* txt, size_t pos);
+		size_t SetLine(DisplayString* line, int pos);
 		size_t RemoveLine(size_t num);
 		int Count();
 		bool isScrollable();
@@ -52,7 +49,6 @@ namespace LCD {
 		//
 		int GetSelectedIndex();
 	};
-
 }
 
 #endif	//_SCREEN_H_

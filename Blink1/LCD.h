@@ -1,82 +1,43 @@
 #ifndef _LCD_H_
 #define _LCD_H_
 
-#define LEFT 0
-#define RIGHT 1
+#include "Display.h"
 
-namespace LCD {
-	using namespace std;
+namespace Display {
 
-	struct CustomSymbol {
-		char Rows[8];
-		CustomSymbol operator= (char* other);
-		CustomSymbol operator= (CustomSymbol other);
-	};
+	typedef unsigned char byte;
+	
+	extern const byte Height;
+	extern const byte Width;
 
-	class LCDString {
-		char str[20];
+	class LCDScreen {
+		Display* out_disp;
+		byte** image;
+		bool initHere = true;
 
-		//перевод кирилицы в кодировку второй таблицы знакогенератора
-		char ToP1(wchar_t symb);
+		byte Sum(int row, int column_sta, int size);
 	public:
-		//Выравнивание текста в строке
-		enum class Alignment {
-			Left,
-			Right,
-			Center
+		enum Size{
+			Square_3x3_lb,
+			Rectangle_2x3,
+			Rectangle_2x4
 		};
 
-		LCDString(const char* txt);
-		LCDString(const char* txt, Alignment at);
-		LCDString(const wchar_t* txt);
-		LCDString(const wchar_t* txt, Alignment at);
-		//Возвращает итоговую строку,форматированную под дисплей
-		const char* GetString() const;
+		LCDScreen(Display* disp);
+		LCDScreen(Display* disp, byte fill);
+		LCDScreen(Display* disp, byte** img);
+		~LCDScreen();
+
+		byte** GetImage() {
+			return image;
+		}
+
+		void Draw(Size size);
+		void UpdateMemory(Size size);
 	};
 
-	class Display {
-		int __E = 20;
-		int __RS = 16;
-		int __D4 = 6;
-		int __D5 = 13;
-		int __D6 = 19;
-		int __D7 = 26;
-
-		void SendByte(uint8_t byte);
-		void Send4Bit(uint8_t byte);
-		void SetDDRAMAddress(int addr);
-		void FunctionSet();
-
-	public:
-
-		enum class Cursor : int {
-			NoCursor_NoFlashing = 0,
-			NoCursor_SymbolFlashing = 1,
-			Cursor_NoFlashing = 2,
-			Cursor_Flashing = 3
-		};
-
-		int CurrentStr;
-		int CurrentCol;
-		Cursor CurrentCursorType;
-
-		Display();
-		Display(int E, int RS, int D4, int D5, int D6, int D7);
-		void Init();
-		void Clear();
-		void ReturnHome();
-		void EntryModeSet(uint8_t ID, uint8_t SH);
-		void Power(uint8_t state, Cursor cursor);
-		void CursorShift(uint8_t RL);
-		void DisplayShift(uint8_t RL);
-		void WriteDataToRAM(uint8_t msg);
-		void SetCursorPos(int str, int col);
-		void SendText(char* txt, size_t size);
-		void SendText(char txt);
-		void LoadSymbol(CustomSymbol symb, uint8_t pos);
-		void SetScreen(std::list<LCDString*>* strs, size_t topline);
-		void SetCGRAMAddr(int addr);
-	};
+	int Drop(byte** image, int x, int y);
+	void SandTest(Display* disp);
 }
 
 #endif

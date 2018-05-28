@@ -1,25 +1,16 @@
-#include <wiringPi.h>
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <pthread.h>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <mutex>
-#include <unistd.h>
-#include <list>
-
-#include "Floodgate.h"
+#include "sys_headers.h"
+#define _DEBUG
 #include "Task.h"
-#include "LCD.h"
+#include "DisplayControl.h"
 #include "threading.h"
 #include "usart.h"
 #include "I2C.h"
 #include "SPI.h"
 #include "Colorize.h"
+#include "stuff.h"
+#include "main.h"
+#include "input.h"
+#include "TCP.h"
 //#include "LCD.h"
 // Контакт LED — контакт 0 wiringPi равен BCM_GPIO 17.
 // При инициализации с использованием wiringPiSetupSys нужно применять нумерацию BCM
@@ -33,18 +24,52 @@
 
 using namespace Threading;
 
+namespace Threading {
+	bool Working = true;
+	TCPServerThread* thrd;
+	LCDControlThread* lcdThrd;
+	ButtonsInputThread* biThrd;
+	vector<Threading::Task*> MainTasks;
+	std::mutex* TasksMutex;
+
+#ifdef _DEBUG
+	ConsoleInputThread* ciThrd;
+#endif
+}
+
+void InitShutdown() {
+	Working = false;
+#ifdef _DEBUG
+	ciThrd->~ConsoleInputThread();
+#endif
+	biThrd->~ButtonsInputThread();
+	thrd->~TCPServerThread();
+	lcdThrd->~LCDControlThread();
+	for (size_t i = 0; i < Listeners.size(); i++) {
+		Listeners[i]->~TCPReciverThread();
+	}
+#ifdef _DEBUG
+	char buf[128];
+	memset(buf, 0, 128);
+	sprintf(buf, "%s: Threads stopped", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
+	cout << buf << endl;
+#endif
+}
+
 int main(int argc, char* argv[])
 {
-	bool Working = true;
 	int channel = 6;
 	int att = 0;
 	int port = 4550;
 
-	//for (int i = 2; i < 71; i++) {
-	//	printf("\033[0;%dm%d\033[0m\n",i,i);
-	//}
-	//return 0;
+	wiringPiSetupGpio();
 
+	ListenersMutex = new mutex();
+	TasksMutex = new mutex();
+	thrd = new TCPServerThread(port);
+
+#ifdef _DEBUG
+	printf("%s: Start...\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-h") == 0) {
 			printf("Esminec main programm, possible params:\n-h	-	help message\n-p <number>	-	set TCP server port number(200...50000)\n-ch <number>	-	set initial channel value(1...20)\n-at <number>	-	set initial attenuation value(0...35)\n\n");
@@ -80,24 +105,19 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
-	ListenersMutex = new mutex();
-	TasksMutex = new mutex();
-	TCPServerThread* thrd;
-	thrd = new TCPServerThread(port);
-
 	printf("%s: Initial setup... Channel:%d Att:%d\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str(), channel, att);
+	ciThrd = new ConsoleInputThread();
+#endif
 	MainTasks.push_back(new TaskSetAttCh((uint8_t)att, (uint8_t)channel));
 	//system("gpio export 27 output && gpio export 17 output && gpio export 22 output && gpio export 26 output && gpio export 19 output && gpio export 13 output && gpio export 6 output");
 	//device tree enabled
 	//system("gpio load spi");
 	//system("gpio load i2c");
-	wiringPiSetupSys();
 
-	LCDControlThread* lcdThrd;
+	Stuff::RecordsStorage = new Stuff::Records();
+
 	lcdThrd = new LCDControlThread();
-
-	UserInputThread* inThrd;
-	inThrd = new UserInputThread();
+	biThrd = new ButtonsInputThread();
 
 #ifdef UART_TEST
 	IO::Usart dev(9600);
@@ -107,7 +127,7 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef I2C_TEST
-	IO::I2C dev(0x4b);
+	IO::I2C dev(10);
 	if (!dev.IsOpen())
 		cout << dev.GetError() << endl;
 
@@ -121,7 +141,7 @@ int main(int argc, char* argv[])
 	while (Working)
 	{
 #ifdef SPI_TEST
-		uint8_t buf[2] = {0x55,0xAA};
+		uint8_t buf[2] = { 0x55,0xAA };
 		//for (int i = 0; i < 2; i++)
 		//	buf[i] = 10;
 		dev.DataRW(buf, 2);
@@ -129,34 +149,7 @@ int main(int argc, char* argv[])
 		TasksMutex->lock();
 		int size = MainTasks.size();
 		if (size > 0) {
-			switch (MainTasks[0]->GetType())
-			{
-			case TaskType::SetAttCh:
-			{
-				char buf[128];
-				memset(buf, 0, 128);
-				sprintf(buf, "%s: Set channel: %d Att: %d", Stuff::MakeColor("MAIN", Stuff::Green).c_str(), MainTasks[0]->Ch(), MainTasks[0]->Att());
-				cout << buf << endl;
-			}
-			break;
-			case TaskType::Quit:
-			{
-				Working = false;
-				inThrd->~UserInputThread();
-				thrd->~TCPServerThread();
-				lcdThrd->~LCDControlThread();
-				for (size_t i = 0; i < Listeners.size(); i++) {
-					Listeners[i]->~TCPReciverThread();
-				}
-				char buf[128];
-				memset(buf, 0, 128);
-				sprintf(buf, "%s: Threads stopped", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
-				cout << buf << endl;
-			}
-			break;
-			default:
-				break;
-			}
+			MainTasks[0]->Run();
 			MainTasks.erase(MainTasks.begin());
 		}
 		TasksMutex->unlock();
@@ -187,28 +180,17 @@ int main(int argc, char* argv[])
 
 #ifdef I2C_TEST
 		//int data = dev.Read();
-		uint8_t dt[6] = { (uint8_t)(cnt % 2),(uint8_t)(cnt % 3),(uint8_t)(cnt % 5),(uint8_t)(cnt % 7),(uint8_t)(cnt % 11),(uint8_t)(cnt % 13) };
-		if (cnt % 5000000 == 0) {
-			dev.Write(dt, 6);
+		uint8_t dt[3] = { 0x55,0xaa,0x55 };
+		if (cnt % 500000 == 0) {
+			//cout << "i2c w:" << dev.Write(dt, 3) << endl;
+			dev.Write(dt, 3);
 		}
 		cnt++;
+		/*int res = dev.Read();
+		if (res != -1)
+			cout << "i2c r:" << res << endl;*/
 #endif
 
-		//if (outStrs.size()) {
-		//	//pause threads
-		//	for(int i=0;i<outStrs.size();i++)
-		//		cout << outStrs[i];
-		//	outStrs.clear();
-		//	//resume
-		//}
-		//printf("input ");
-		//scanf("%s",buf);
-		//sprintf(wBuf, "asdasdjhakhw");
-		//if (wBuf[0] == '0') {
-		//	break;
-		//}
-		//else {
-		//}
 	}
 	return 0;
 }

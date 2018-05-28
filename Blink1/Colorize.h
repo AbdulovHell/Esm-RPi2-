@@ -2,6 +2,8 @@
 #define _COLORIZE_H_
 #include <iostream>
 
+//инструмент раскраски вывода в терминал
+
 namespace Stuff {
 	typedef const std::string SColor;
 

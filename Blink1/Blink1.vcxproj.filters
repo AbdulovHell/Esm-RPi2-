@@ -7,6 +7,36 @@
     <Filter Include="Headers">
       <UniqueIdentifier>{7ede0a9a-bbdd-4c98-a815-d6e7296e7d59}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\Data Interface">
+      <UniqueIdentifier>{5191efeb-5e97-4b3d-a085-0d048734f307}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Data Interface">
+      <UniqueIdentifier>{ea719603-a645-43aa-83fd-985e41c288eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Stuff">
+      <UniqueIdentifier>{0b668fd5-4dcd-4997-9a4f-32ee224e7dee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Stuff">
+      <UniqueIdentifier>{00d7a8a0-d3fa-43ef-8fb6-f2c82d033347}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Display">
+      <UniqueIdentifier>{145455af-9970-4bbc-b8cf-b2320089a38c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Display">
+      <UniqueIdentifier>{f5cb03b2-e385-4235-a2be-eafecf061932}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Stuff\Games">
+      <UniqueIdentifier>{20370f2a-c7cf-4b9c-b6af-cc0a25a91776}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Stuff\Games">
+      <UniqueIdentifier>{abf17575-0601-48ac-8764-43fd78e5da83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Ethernet">
+      <UniqueIdentifier>{1d911519-e25c-4eb3-b247-38d982594380}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Ethernet">
+      <UniqueIdentifier>{a100339c-1a76-4966-bc71-c27b60acfc2b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -15,73 +45,109 @@
     <ClCompile Include="threading.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\stuff.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="usart.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="I2C.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="SPI.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Colorize.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="LCD.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Screen.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Task.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Floodgate.cpp">
-      <Filter>Source</Filter>
+    <ClCompile Include="I2C.cpp">
+      <Filter>Source\Data Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="SPI.cpp">
+      <Filter>Source\Data Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="usart.cpp">
+      <Filter>Source\Data Interface</Filter>
     </ClCompile>
     <ClCompile Include="cg.cpp">
+      <Filter>Source\Stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="Colorize.cpp">
+      <Filter>Source\Stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="Screen.cpp">
+      <Filter>Source\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="games.cpp">
+      <Filter>Source\Stuff\Games</Filter>
+    </ClCompile>
+    <ClCompile Include="input.cpp">
       <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TCP.cpp">
+      <Filter>Source\Ethernet</Filter>
+    </ClCompile>
+    <ClCompile Include="DisplayControl.cpp">
+      <Filter>Source\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="Display.cpp">
+      <Filter>Source\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="stuff.cpp">
+      <Filter>Source\Stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="LCD.cpp">
+      <Filter>Source\Display</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="threading.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\stuff.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="usart.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="I2C.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="SPI.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Colorize.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="LCD.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Screen.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Task.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Floodgate.h">
+    <ClInclude Include="sys_headers.h">
       <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="I2C.h">
+      <Filter>Headers\Data Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="SPI.h">
+      <Filter>Headers\Data Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="usart.h">
+      <Filter>Headers\Data Interface</Filter>
     </ClInclude>
     <ClInclude Include="cg.h">
-      <Filter>Headers</Filter>
+      <Filter>Headers\Stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="Colorize.h">
+      <Filter>Headers\Stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="Screen.h">
+      <Filter>Headers\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="games.h">
+      <Filter>Headers\Stuff\Games</Filter>
     </ClInclude>
     <ClInclude Include="Snake.h">
+      <Filter>Headers\Stuff\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="input.h">
       <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TCP.h">
+      <Filter>Headers\Ethernet</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyEvents.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DisplayControl.h">
+      <Filter>Headers\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="Display.h">
+      <Filter>Headers\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="LCD.h">
+      <Filter>Headers\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="stuff.h">
+      <Filter>Headers\Stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="Tetris.h">
+      <Filter>Headers\Stuff\Games</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

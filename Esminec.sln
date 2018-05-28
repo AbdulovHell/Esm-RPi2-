@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.16
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Blink1", "Blink1\Blink1.vcxproj", "{7A2A257B-92B8-4DE0-BD18-575AD7EB1319}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WindowsClient", "WindowsClient\WindowsClient.vcxproj", "{5546CCBF-072B-44C1-BEEF-140FED7E9575}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Esminec", "Blink1\Blink1.vcxproj", "{7A2A257B-92B8-4DE0-BD18-575AD7EB1319}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,18 +23,11 @@ Global
 		{7A2A257B-92B8-4DE0-BD18-575AD7EB1319}.Release|ARM.Build.0 = Release|ARM
 		{7A2A257B-92B8-4DE0-BD18-575AD7EB1319}.Release|x64.ActiveCfg = Release|ARM
 		{7A2A257B-92B8-4DE0-BD18-575AD7EB1319}.Release|x86.ActiveCfg = Release|ARM
-		{5546CCBF-072B-44C1-BEEF-140FED7E9575}.Debug|ARM.ActiveCfg = Debug|Win32
-		{5546CCBF-072B-44C1-BEEF-140FED7E9575}.Debug|x64.ActiveCfg = Debug|x64
-		{5546CCBF-072B-44C1-BEEF-140FED7E9575}.Debug|x64.Build.0 = Debug|x64
-		{5546CCBF-072B-44C1-BEEF-140FED7E9575}.Debug|x86.ActiveCfg = Debug|Win32
-		{5546CCBF-072B-44C1-BEEF-140FED7E9575}.Debug|x86.Build.0 = Debug|Win32
-		{5546CCBF-072B-44C1-BEEF-140FED7E9575}.Release|ARM.ActiveCfg = Release|Win32
-		{5546CCBF-072B-44C1-BEEF-140FED7E9575}.Release|x64.ActiveCfg = Release|x64
-		{5546CCBF-072B-44C1-BEEF-140FED7E9575}.Release|x64.Build.0 = Release|x64
-		{5546CCBF-072B-44C1-BEEF-140FED7E9575}.Release|x86.ActiveCfg = Release|Win32
-		{5546CCBF-072B-44C1-BEEF-140FED7E9575}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D36A0FB4-C576-4D5D-9BA6-0C6F102A209B}
 	EndGlobalSection
 EndGlobal

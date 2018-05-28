@@ -1,401 +1,269 @@
-#include <stdint.h>
-#include <wiringPi.h>
-#include <thread>
-#include <chrono>
-#include <string.h>
-#include <list>
+#include "sys_headers.h"
 
 #include "LCD.h"
 
-void LCD::Display::SendByte(uint8_t byte)
-{
-	digitalWrite(__E, 1);
+namespace Display {
 
-	digitalWrite(__D7, byte & 0b10000000);
-	digitalWrite(__D6, byte & 0b01000000);
-	digitalWrite(__D5, byte & 0b00100000);
-	digitalWrite(__D4, byte & 0b00010000);
+	//in pixels
+	const byte Height = 3 * 8;
+	const byte Width = 3 * 5;
 
-	std::this_thread::sleep_for(std::chrono::nanoseconds(500));
-	digitalWrite(__E, 0);
-	std::this_thread::sleep_for(std::chrono::nanoseconds(500));
+	byte LCDScreen::Sum(int row, int column_sta, int size)
+	{
+		byte res = 0;
 
-	digitalWrite(__E, 1);
-
-	digitalWrite(__D7, byte & 0b00001000);
-	digitalWrite(__D6, byte & 0b00000100);
-	digitalWrite(__D5, byte & 0b00000010);
-	digitalWrite(__D4, byte & 0b00000001);
-
-	std::this_thread::sleep_for(std::chrono::nanoseconds(500));
-	digitalWrite(__E, 0);
-	std::this_thread::sleep_for(std::chrono::nanoseconds(500));
-}
-
-void LCD::Display::Send4Bit(uint8_t byte)
-{
-	digitalWrite(__E, 1);
-
-	digitalWrite(__D7, byte & 0b00001000);
-	digitalWrite(__D6, byte & 0b00000100);
-	digitalWrite(__D5, byte & 0b00000010);
-	digitalWrite(__D4, byte & 0b00000001);
-
-	std::this_thread::sleep_for(std::chrono::nanoseconds(500));
-	digitalWrite(__E, 0);
-	std::this_thread::sleep_for(std::chrono::nanoseconds(500));
-}
-
-void LCD::Display::SetDDRAMAddress(int addr)
-{
-	uint8_t msg = 0b10000000;
-	msg |= (uint8_t)addr;
-	SendByte(msg);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-}
-
-void LCD::Display::FunctionSet()
-{
-	uint8_t msg = 0b00101010;
-	SendByte(msg);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-}
-
-LCD::Display::Display()
-{
-	char buf[200];
-	sprintf(buf, "gpio export %d output && gpio export %d output && gpio export %d output && gpio export %d output && gpio export %d output && gpio export %d output", __RS, __E, __D4, __D5, __D6, __D7);
-	system(buf);
-	wiringPiSetupSys();
-
-	digitalWrite(__RS, 0);
-	digitalWrite(__E, 0);
-	digitalWrite(__D4, 0);
-	digitalWrite(__D5, 0);
-	digitalWrite(__D6, 0);
-	digitalWrite(__D7, 0);
-}
-
-LCD::Display::Display(int E, int RS, int D4, int D5, int D6, int D7)
-{
-	__E = E;
-	__RS = RS;
-	__D4 = D4;
-	__D5 = D5;
-	__D6 = D6;
-	__D7 = D7;
-
-	char buf[200];
-	sprintf(buf, "gpio export %d output && gpio export %d output && gpio export %d output && gpio export %d output && gpio export %d output && gpio export %d output", __RS, __E, __D4, __D5, __D6, __D7);
-	system(buf);
-	wiringPiSetupSys();
-
-	digitalWrite(__RS, 0);
-	digitalWrite(__E, 0);
-	digitalWrite(__D4, 0);
-	digitalWrite(__D5, 0);
-	digitalWrite(__D6, 0);
-	digitalWrite(__D7, 0);
-}
-
-void LCD::Display::Init()
-{
-	//начало ритуала
-	Send4Bit(0b0011);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-	Send4Bit(0b0011);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-	Send4Bit(0b0011);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-	Send4Bit(0b0010);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-	//Общие команды
-	FunctionSet();
-	Power(1, Cursor::Cursor_Flashing);
-	Clear();
-	EntryModeSet(1, 0);
-}
-
-void LCD::Display::Clear()
-{
-	SendByte(0b00000001);
-	std::this_thread::sleep_for(std::chrono::microseconds(1500));
-}
-
-void LCD::Display::ReturnHome()
-{
-	SendByte(0b00000010);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-}
-
-void LCD::Display::EntryModeSet(uint8_t ID, uint8_t SH)
-{
-	uint8_t msg = 0b00000100;
-	msg |= (uint8_t)(ID << 1);
-	msg |= SH;
-	SendByte(msg);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-}
-
-void LCD::Display::Power(uint8_t state, Cursor cursor)
-{
-	CurrentCursorType = cursor;
-	uint8_t msg = 0b00001000;
-	msg |= (uint8_t)(state << 2);
-	msg |= (uint8_t)cursor;
-	SendByte(msg);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-}
-
-void LCD::Display::CursorShift(uint8_t RL)
-{
-	uint8_t msg = 0b00010000;
-	msg |= (uint8_t)(RL << 2);
-	SendByte(msg);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-}
-
-void LCD::Display::DisplayShift(uint8_t RL)
-{
-	uint8_t msg = 0b00011000;
-	msg |= (uint8_t)(RL << 2);
-	SendByte(msg);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-}
-
-void LCD::Display::WriteDataToRAM(uint8_t msg)
-{
-	digitalWrite(__RS, 1);
-	SendByte(msg);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-	digitalWrite(__RS, 0);
-}
-
-void LCD::Display::SetCursorPos(int str, int col)
-{
-	if (str < 1 || str>4 || col < 1 || col>20) return;
-	CurrentCol = col;
-	CurrentStr = str;
-	col--;
-	switch (str) {
-	case 1:
-		SetDDRAMAddress(col);
-		break;
-	case 2:
-		SetDDRAMAddress(col + 0x40);
-		break;
-	case 3:
-		SetDDRAMAddress(col + 0x14);
-		break;
-	case 4:
-		SetDDRAMAddress(col + 0x54);
-		break;
-	default:
-		break;
-	}
-}
-
-void LCD::Display::SendText(char * txt, size_t size)
-{
-	for (size_t i = 0; i < size; i++) {
-		WriteDataToRAM(txt[i]);
-	}
-}
-
-void LCD::Display::SendText(char txt)
-{
-	WriteDataToRAM(txt);
-}
-
-void LCD::Display::LoadSymbol(CustomSymbol symb, uint8_t pos)
-{
-	if (pos < 0 || pos>7) return;
-	SetCGRAMAddr(pos << (uint8_t)3);
-	WriteDataToRAM(symb.Rows[0]);
-	WriteDataToRAM(symb.Rows[1]);
-	WriteDataToRAM(symb.Rows[2]);
-	WriteDataToRAM(symb.Rows[3]);
-	WriteDataToRAM(symb.Rows[4]);
-	WriteDataToRAM(symb.Rows[5]);
-	WriteDataToRAM(symb.Rows[6]);
-	WriteDataToRAM(symb.Rows[7]);
-}
-
-void LCD::Display::SetScreen(list<LCDString*>* strs, size_t topline)
-{
-	list<LCDString*>::iterator it = strs->begin();
-	if (topline > 0) std::advance(it, topline);
-	
-	for (size_t i = topline; i < topline + 4 && i < (strs->size()); i++, it++) {
-		SetCursorPos(i - topline + 1, 1);
-		LCDString* str = *it;
-		const char* temp = str->GetString();
-		for (int j = 0; j < 20; j++) {
-			WriteDataToRAM(temp[j]);
+		for (int i = column_sta; i < column_sta + size; i++) {
+			res += (byte)((image[row][i]) ? 1 : 0);
+			if (i < column_sta + size - 1) res <<= 1;
 		}
+
+		return res;
 	}
-
-	/*for (int i = 1; i < 5; i++) {
-		SetCursorPos(i, 1);
-		list<LCDString*>::iterator it = strs->begin();
-
-		LCDString* str;
-		if (*it != 0) {
-			str = *it;
-			const char* temp = str->GetString();
-			for (int j = 0; j < 20; j++) {
-				WriteDataToRAM(temp[j]);
+	LCDScreen::LCDScreen(Display * disp)
+	{
+		out_disp = disp;
+		image = new byte*[Height];
+		for (int i = 0; i < Height; i++) {
+			image[i] = new byte[Width];
+			for (int j = 0; j < Width; j++) {
+				image[i][j] = (byte)(0);
 			}
 		}
-		else {
-
-		}
-	}*/
-}
-
-void LCD::Display::SetCGRAMAddr(int addr)
-{
-	uint8_t msg = 0b01000000;
-	msg |= (uint8_t)addr;
-	SendByte(msg);
-	std::this_thread::sleep_for(std::chrono::microseconds(50));
-}
-
-LCD::CustomSymbol LCD::CustomSymbol::operator=(char * other)
-{
-	for (int i = 0; i < 8; i++)
-		Rows[i] = *(other + i);
-	return *this;
-}
-
-LCD::CustomSymbol LCD::CustomSymbol::operator=(CustomSymbol other)
-{
-	Rows[0] = other.Rows[1];
-	Rows[1] = other.Rows[1];
-	Rows[2] = other.Rows[2];
-	Rows[3] = other.Rows[3];
-	Rows[4] = other.Rows[4];
-	Rows[5] = other.Rows[5];
-	Rows[6] = other.Rows[6];
-	Rows[7] = other.Rows[7];
-	return *this;
-}
-
-char LCD::LCDString::ToP1(wchar_t symb)
-{
-	if (symb >= 0x410 && symb <= 0x044F) {
-		return (char)(symb - 0x410 + 0xC0);
 	}
-	else {
-		return (char)symb;
-	}
-}
-
-LCD::LCDString::LCDString(const char * txt)
-{
-	//default align = left
-	int len = (int)strlen(txt);
-	if (len > 20) len = 20;
-	for (int i = 0; i < len; i++)
-		str[i] = txt[i];
-	for (int i = len; i < 20; i++) {
-		str[i] = ' ';
-	}
-}
-
-LCD::LCDString::LCDString(const char * txt, Alignment at)
-{
-	int len = (int)strlen(txt);
-	if (len > 20) len = 20;
-	switch (at)
+	LCDScreen::LCDScreen(Display * disp, byte fill)
 	{
-	case LCD::LCDString::Alignment::Left:
-		for (int i = 0; i < len; i++)
-			str[i] = txt[i];
-		for (int i = len; i < 20; i++) {
-			str[i] = ' ';
+		out_disp = disp;
+		image = new byte*[Height];
+		for (int i = 0; i < Height; i++) {
+			image[i] = new byte[Width];
+			for (int j = 0; j < Width; j++) {
+				image[i][j] = fill;
+			}
 		}
-		break;
-	case LCD::LCDString::Alignment::Right:
-		for (int i = 0; i < 20 - len; i++)
-			str[i] = ' ';
-		for (int i = 20 - len; i < 20; i++) {
-			str[i] = txt[i - (20 - len)];
-		}
-		break;
-	case LCD::LCDString::Alignment::Center:
+	}
+	LCDScreen::LCDScreen(Display * disp, byte ** img)
 	{
-		int leftspace = (20 - len) / 2;
-		//int rightspace = (20 - len) / 2 + (20 - len) % 2;
-		for (int i = 0; i < leftspace; i++) {
-			str[i] = ' ';
-		}
-		for (int i = leftspace; i < leftspace + len; i++) {
-			str[i] = txt[i - leftspace];
-		}
-		for (int i = leftspace + len; i < 20; i++) {
-			str[i] = ' ';
-		}
+		out_disp = disp;
+		image = img;
+		initHere = false;
 	}
-	break;
-	default:
-		break;
-	}
-}
-
-LCD::LCDString::LCDString(const wchar_t * txt)
-{
-	//default align = left
-	int len = (int)wcslen(txt);
-	if (len > 20) len = 20;
-	for (int i = 0; i < len; i++)
-		str[i] = ToP1(txt[i]);
-	for (int i = len; i < 20; i++) {
-		str[i] = ' ';
-	}
-}
-
-LCD::LCDString::LCDString(const wchar_t * txt, Alignment at)
-{
-	int len = (int)wcslen(txt);
-	if (len > 20) len = 20;
-	switch (at)
+	LCDScreen::~LCDScreen()
 	{
-	case LCD::LCDString::Alignment::Left:
-		for (int i = 0; i < len; i++)
-			str[i] = ToP1(txt[i]);
-		for (int i = len; i < 20; i++) {
-			str[i] = ' ';
+		if (initHere) {
+			for (int i = 0; i < Height; i++) {
+				delete[] image[i];
+			}
+			delete[] image;
 		}
-		break;
-	case LCD::LCDString::Alignment::Right:
-		for (int i = 0; i < 20 - len; i++)
-			str[i] = ' ';
-		for (int i = 20 - len; i < 20; i++) {
-			str[i] = ToP1(txt[i - (20 - len)]);
-		}
-		break;
-	case LCD::LCDString::Alignment::Center:
+	}
+	void LCDScreen::Draw(Size size)
 	{
-		int leftspace = (20 - len) / 2;
-		//int rightspace = (20 - len) / 2 + (20 - len) % 2;
-		for (int i = 0; i < leftspace; i++) {
-			str[i] = ' ';
-		}
-		for (int i = leftspace; i < leftspace + len; i++) {
-			str[i] = ToP1(txt[i - leftspace]);
-		}
-		for (int i = leftspace + len; i < 20; i++) {
-			str[i] = ' ';
+		CustomSymbol s;
+		int ordr = 0;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				switch (size)
+				{
+				case Size::Square_3x3_lb:
+					if (i == 0 && j == 2) continue;
+					break;
+				case Size::Rectangle_2x3:
+					if (i == 0) continue;
+					break;
+				default:
+					if (i == 0 && j == 2) continue;
+					break;
+				}
+				for (int k = 0; k < 8; k++) {
+					s.Rows[k] = Sum(k + j * 8, i * 5, 5);
+				}
+				out_disp->LoadSymbol(s, ordr);
+				out_disp->SetCursorPos(j + 1, i + 7);	//отсчет от 1
+				out_disp->SendText(ordr++);
+			}
 		}
 	}
-	break;
-	default:
-		break;
-	}
-}
+	void LCDScreen::UpdateMemory(Size size)
+	{
+		CustomSymbol s;
+		int ordr = 0;
+		int i, j,iMax,jMax;
 
-const char * LCD::LCDString::GetString() const
-{
-	return str;
+		switch (size)
+		{
+		case Size::Square_3x3_lb:
+			break;
+		case Size::Rectangle_2x4:
+			i = 0;
+			iMax = 2;
+			j = 0;
+			jMax = 4;
+			break;
+		case Size::Rectangle_2x3:
+		default:
+
+			break;
+		}
+
+		for (i = 0; i < iMax; i++) {
+			for (j = 0; j < jMax; j++) {
+				for (int k = 0; k < 8; k++) {
+					s.Rows[k] = Sum(k + j * 8, i * 5, 5);
+				}
+				out_disp->LoadSymbol(s, ordr++);
+			}
+		}
+	}
+	int Drop(byte ** image, int x, int y)
+	{
+		bool left = false, right = false;
+		int sum = 0;
+		int newx = x - 1;
+		if (newx >= 0) {
+			sum = image[y][newx] + image[y + 1][newx];
+			if (sum == 0) {
+				left = true;
+			}
+		}
+
+		if (newx < Width) {
+			newx = x + 1;
+			sum = image[y][newx] + image[y + 1][newx];
+			if (sum == 0) {
+				right = true;
+			}
+		}
+
+		if (left && right)
+			return (random() % 2) ? -1 : 1;
+		else if (left)
+			return -1;
+		else if (right)
+			return 1;
+		else
+			return 0;
+	}
+	void SandTest(Display * disp)
+	{
+
+		byte** image = new byte*[Height];
+		int skip = 0;
+		for (int i = 0; i < Height; i++) {
+			image[i] = new byte[Width];
+			for (int j = 0; j < Width; j++) {
+				image[i][j] = (byte)(0);
+			}
+		}
+		for (int i = 0; i < 5; i++) {
+			for (int j = 16; j < Height; j++) {
+				image[j][i] = (byte)(2);
+			}
+		}
+		//image[18][11] = 2;
+
+		/*
+		image[4][7] = 2;
+		image[6][6] = 2;
+		image[6][8] = 2;
+		image[8][5] = 2;
+		image[8][7] = 2;
+		image[8][9] = 2;
+		image[10][4] = 2;
+		image[10][6] = 2;
+		image[10][8] = 2;
+		image[10][10] = 2;
+		image[12][3] = 2;
+		image[12][5] = 2;
+		image[12][7] = 2;
+		image[12][9] = 2;
+		image[12][11] = 2;
+		image[14][2] = 2;
+		image[14][4] = 2;
+		image[14][6] = 2;
+		image[14][8] = 2;
+		image[14][10] = 2;
+		image[14][12] = 2;
+		image[16][1] = 2;
+		image[16][3] = 2;
+		image[16][5] = 2;
+		image[16][7] = 2;
+		image[16][9] = 2;
+		image[16][11] = 2;
+		image[16][13] = 2;
+		*/
+		LCDScreen* scr = new LCDScreen(disp, image);
+		do {
+			//0<=y<=15 0<=x<=14
+			//start point [0 row, 7 column]
+			/*
+			i
+			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+			0
+			1
+			2
+			j    3
+			4
+			5
+			..
+			24
+			*/
+			for (int i = 0; i < Width; i++) {
+				for (int j = Height - 1; j >= 0; j--) {
+					if (image[j][i] == 1 && (j < Height - 1)) {
+						if (image[j + 1][i] == 0) {
+							image[j][i] = 0;
+							image[j + 1][i] = 1;
+						}
+						else if (j < Height - 2) {
+							int side = Drop(image, i, j);
+							if (side != 0) {
+								image[j][i] = 0;
+								image[j + 1][i + side] = 1;
+							}
+						}
+					}
+					else {
+
+					}
+				}
+			}
+
+			//новая песчинка, если для нее есть место
+			int pos = random() % Width;
+			if (image[0][pos] == 0 && image[1][pos] == 0) {
+				image[0][pos] = 1;
+				skip = 0;
+			}
+			else {
+				skip++;
+				if (skip > 3) {
+					scr->~LCDScreen();
+					for (int i = 0; i < Height; i++) {
+						delete[] image[i];
+					}
+					delete[] image;
+					return;
+				}
+			}
+			//обновление экрана
+			scr->Draw(LCDScreen::Square_3x3_lb);
+
+			for (int i = 0; i < Height; i++) {
+				for (int j = 0; j < Width; j++) {
+					if (image[i][j] == 1) cout << '0';
+					else if (image[i][j] == 2) cout << '#';
+					else cout << ' ';
+				}
+				cout << endl;
+			}
+			for (int i = 0; i < 1; i++) {
+				for (int j = 0; j < Width; j++) {
+					cout << '=';
+				}
+				cout << endl;
+			}
+			//cout << "----" << endl;
+			this_thread::sleep_for(chrono::milliseconds(100));
+		} while (1);
+	}
 }

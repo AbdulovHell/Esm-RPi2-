@@ -4,6 +4,8 @@
 #include <termios.h>
 #include <stdio.h>
 
+//реализация старой стандартной функции getch
+
 namespace Stuff {
 	
 	extern struct termios tOld, tNew;

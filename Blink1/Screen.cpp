@@ -1,22 +1,9 @@
-#include <stdint.h>
-#include <wiringPi.h>
-#include <thread>
-#include <chrono>
-#include <string.h>
-#include <list>
-#include <mutex>
-#include <vector>
+#include "sys_headers.h"
 
-#include "Task.h"
-#include "LCD.h"
+#include "Display.h"
 #include "Screen.h"
 
-namespace LCD {
-	mutex ScreenMutex;
-	vector<Threading::Task*> LCDTasks;
-}
-
-void LCD::Screen::UpdateScrllFlag()
+void Display::Screen::UpdateScrllFlag()
 {
 	if (Lines->size() > 4) {
 		bScrollable = true;
@@ -26,7 +13,7 @@ void LCD::Screen::UpdateScrllFlag()
 	}
 }
 
-void LCD::Screen::UpdateDisplay()
+void Display::Screen::UpdateDisplay()
 {
 	display->SetScreen(Lines, TopLine);
 	DrawScrollBar();
@@ -36,7 +23,7 @@ void LCD::Screen::UpdateDisplay()
 	}
 }
 
-void LCD::Screen::DrawScrollBar()
+void Display::Screen::DrawScrollBar()
 {
 	if (!bScrollable) return;
 #define ONELINE 1
@@ -65,23 +52,23 @@ void LCD::Screen::DrawScrollBar()
 	}
 }
 
-LCD::Screen::Screen(LCD::Display * disp)
+Display::Screen::Screen(Display * disp)
 {
-	Lines = new list<LCDString*>;
+	Lines = new list<DisplayString*>;
 	LinesCount = Lines->size();
 	bScrollable = false;
 	TopLine = 0;
 	display = disp;
 }
 
-LCD::LCDString* LCD::Screen::operator[](size_t c)
+Display::DisplayString* Display::Screen::operator[](size_t c)
 {
-	list<LCDString*>::iterator it = Lines->begin();
+	list<DisplayString*>::iterator it = Lines->begin();
 	std::advance(it, c);
 	return *it;
 }
 
-size_t LCD::Screen::AddLine(LCDString * txt)
+size_t Display::Screen::AddLine(DisplayString * txt)
 {
 	Lines->push_back(txt);
 	LinesCount = Lines->size();
@@ -90,9 +77,9 @@ size_t LCD::Screen::AddLine(LCDString * txt)
 	return LinesCount;
 }
 
-size_t LCD::Screen::AddLine(LCDString * txt, size_t pos)
+size_t Display::Screen::AddLine(DisplayString * txt, size_t pos)
 {
-	std::list<LCDString*>::iterator it = Lines->begin();
+	std::list<DisplayString*>::iterator it = Lines->begin();
 	std::advance(it, pos);
 	Lines->emplace(it, txt);
 	LinesCount = Lines->size();
@@ -101,14 +88,14 @@ size_t LCD::Screen::AddLine(LCDString * txt, size_t pos)
 	return LinesCount;
 }
 
-int LCD::Screen::Count()
+int Display::Screen::Count()
 {
 	return (int)LinesCount;
 }
 
-size_t LCD::Screen::RemoveLine(size_t num)
+size_t Display::Screen::RemoveLine(size_t num)
 {
-	std::list<LCDString*>::iterator it = Lines->begin();
+	std::list<DisplayString*>::iterator it = Lines->begin();
 	std::advance(it, num);
 	Lines->erase(it);
 	LinesCount = Lines->size();
@@ -117,17 +104,17 @@ size_t LCD::Screen::RemoveLine(size_t num)
 	return LinesCount;
 }
 
-bool LCD::Screen::isScrollable()
+bool Display::Screen::isScrollable()
 {
 	return bScrollable;
 }
 
-void LCD::Screen::SetActive()
+void Display::Screen::SetActive()
 {
 	UpdateDisplay();
 }
 
-void LCD::Screen::Scroll(int offset)
+void Display::Screen::Scroll(int offset)
 {
 	//if (TopLine + offset >= LinesCount || TopLine + offset < 0) return;
 	TopLine += offset;
@@ -138,7 +125,7 @@ void LCD::Screen::Scroll(int offset)
 	UpdateDisplay();
 }
 
-void LCD::Screen::EnableMenu(int headerLen, int DefaultCursorPos)
+void Display::Screen::EnableMenu(int headerLen, int DefaultCursorPos)
 {
 	if (DefaultCursorPos > 4 || DefaultCursorPos < 1) {
 		DefaultCursorPos = headerLen + 1;
@@ -149,7 +136,7 @@ void LCD::Screen::EnableMenu(int headerLen, int DefaultCursorPos)
 	SelectedLine = DefaultCursorPos;
 }
 
-void LCD::Screen::ScrollMenu(int offset)
+void Display::Screen::ScrollMenu(int offset)
 {
 	if (!isMenu) return;
 
@@ -182,17 +169,17 @@ void LCD::Screen::ScrollMenu(int offset)
 	display->SetCursorPos(CrPos, 1);
 }
 
-int LCD::Screen::GetSelectedIndex()
+int Display::Screen::GetSelectedIndex()
 {
 	return SelectedLine;
 }
 
-size_t LCD::Screen::SetLine(LCDString* line, int pos)
+size_t Display::Screen::SetLine(DisplayString* line, int pos)
 {
 	if (pos > LinesCount - 1) {
 		return AddLine(line);
 	}
-	std::list<LCDString*>::iterator it = Lines->begin();
+	std::list<DisplayString*>::iterator it = Lines->begin();
 	std::advance(it, pos);
 	delete *it;
 	*it = line;

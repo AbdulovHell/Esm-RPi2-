@@ -3,6 +3,8 @@
 
 #include <semaphore.h>
 
+//не используется
+
 namespace Threading {
 
 	class Floodgate {

@@ -36,6 +36,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <IncludePath>C:\Users\Evrika\Documents\Visual Studio 2017\from pi;$(IncludePath)</IncludePath>
     <TargetExt />
+    <RemoteCompileLocalCopyObjectFiles>true</RemoteCompileLocalCopyObjectFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <IncludePath>C:\Users\Evrika\Documents\Visual Studio 2017\from pi;$(IncludePath)</IncludePath>
@@ -67,37 +68,49 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\stuff.cpp" />
     <ClCompile Include="cg.cpp" />
     <ClCompile Include="Colorize.cpp" />
-    <ClCompile Include="Floodgate.cpp" />
+    <ClCompile Include="DisplayControl.cpp" />
+    <ClCompile Include="games.cpp" />
     <ClCompile Include="I2C.cpp" />
+    <ClCompile Include="input.cpp" />
+    <ClCompile Include="Display.cpp" />
     <ClCompile Include="LCD.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Screen.cpp" />
     <ClCompile Include="SPI.cpp" />
+    <ClCompile Include="stuff.cpp" />
     <ClCompile Include="Task.cpp" />
+    <ClCompile Include="TCP.cpp" />
     <ClCompile Include="threading.cpp" />
     <ClCompile Include="usart.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\stuff.h" />
     <ClInclude Include="cg.h" />
     <ClInclude Include="Colorize.h" />
-    <ClInclude Include="Floodgate.h" />
+    <ClInclude Include="DisplayControl.h" />
+    <ClInclude Include="games.h" />
     <ClInclude Include="I2C.h" />
+    <ClInclude Include="input.h" />
+    <ClInclude Include="KeyEvents.h" />
+    <ClInclude Include="Display.h" />
     <ClInclude Include="LCD.h" />
+    <ClInclude Include="main.h" />
     <ClInclude Include="Screen.h" />
     <ClInclude Include="Snake.h" />
     <ClInclude Include="SPI.h" />
+    <ClInclude Include="stuff.h" />
+    <ClInclude Include="sys_headers.h" />
     <ClInclude Include="Task.h" />
+    <ClInclude Include="TCP.h" />
+    <ClInclude Include="Tetris.h" />
     <ClInclude Include="threading.h" />
     <ClInclude Include="usart.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
       <AdditionalOptions>-lpthread -lz %(AdditionalOptions)</AdditionalOptions>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <AdditionalOptions>-lpthread -lz %(AdditionalOptions)</AdditionalOptions>

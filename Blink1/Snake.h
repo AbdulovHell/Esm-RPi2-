@@ -3,7 +3,7 @@
 
 #include <vector>
 
-namespace Stuff {
+namespace Games {
 	struct SCoord {
 		int x;
 		int y;
@@ -25,27 +25,28 @@ namespace Stuff {
 		}
 
 		void Move(int x, int y) {
+			for (size_t i = Tail.size() - 1; i > 0; i--) {
+				Tail[i] = Tail[i - 1];
+			}
+
 			Tail[0].x = Head.x;
 			Tail[0].y = Head.y;
 			Head.x = x;
 			Head.y = y;
-			for (size_t i = 1; i < Tail.size(); i++) {
-				Tail[i] = Tail[i - 1];
-			}
 		}
 
 		void MoveAndGrow(int x, int y) {
+			SCoord last;
+			Tail.push_back(last);
+
+			for (size_t i = Tail.size() - 1; i > 0; i--) {
+				Tail[i] = Tail[i - 1];
+			}
+
 			Tail[0].x = Head.x;
 			Tail[0].y = Head.y;
 			Head.x = x;
 			Head.y = y;
-			SCoord last;
-			last.x = Tail[Tail.size() - 1].x;
-			last.y = Tail[Tail.size() - 1].y;
-			for (size_t i = 1; i < Tail.size(); i++) {
-				Tail[i] = Tail[i - 1];
-			}
-			Tail.push_back(last);
 		}
 
 		SCoord operator[] (int index) {
@@ -53,7 +54,7 @@ namespace Stuff {
 				return Head;
 			}
 			else {
-				return Tail[index-1];
+				return Tail[index - 1];
 			}
 		}
 
