@@ -1,7 +1,9 @@
 #include "sys_headers.h"
-
+#include <functional>
 #include "Display.h"
 #include "Screen.h"
+#include "DisplayControl.h"
+#include "Colorize.h"
 
 void Display::Screen::UpdateScrllFlag()
 {
@@ -50,6 +52,12 @@ void Display::Screen::DrawScrollBar()
 		display->SetCursorPos(i + 1, 20);
 		display->SendText((char)i);
 	}
+}
+
+void Display::Screen::DispatchMessage()
+{
+	KeyEvents.erase(KeyEvents.begin());
+	ScreenMutex.unlock();
 }
 
 Display::Screen::Screen(Display * disp)
@@ -112,6 +120,101 @@ bool Display::Screen::isScrollable()
 void Display::Screen::SetActive()
 {
 	UpdateDisplay();
+	if (!isActive) isActive = true;
+	int size = 0;
+	while (isActive) {
+		size = KeyEvents.size();
+		if (size > 0) {
+			ScreenMutex.lock();
+			switch (KeyEvents[0]->eCode)
+			{
+			case EventCode::UpKeyPress:
+				DispatchMessage();
+				if (UpKeyCallback != nullptr)
+					UpKeyCallback(display, 0);
+				break;
+			case EventCode::DownKeyPress:
+				DispatchMessage();
+				if (DownKeyCallback != nullptr)
+					DownKeyCallback(display, 0);
+				break;
+			case EventCode::LeftKeyPress:
+				DispatchMessage();
+				if (LeftKeyCallback != nullptr)
+					LeftKeyCallback(display, 0);
+				break;
+			case EventCode::RightKeyPress:
+				DispatchMessage();
+				if (RightKeyCallback != nullptr)
+					RightKeyCallback(display, 0);
+				break;
+			case EventCode::MidKeyPress:
+				//printf("%s: Mid key pressed\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str());
+				DispatchMessage();
+				//printf("%s: dispatch\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str());
+				{
+					std::list<DisplayString*>::iterator it1 = Lines->begin();
+					std::advance(it1, SelectedLine - 1);
+					if ((*it1)->ItemPressedCallback != nullptr) {
+						printf("%s: func ptr finded, %s\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), (*it1)->GetString());
+						(*it1)->ItemPressedCallback(display, 0);
+					}
+				}
+				break;
+			default:
+				DispatchMessage();
+				break;
+			}
+			UpdateDisplay();
+		}
+		std::list<DisplayString*>::iterator it1 = Lines->begin();
+		std::advance(it1, SelectedLine - 1);
+		if ((*it1)->isScrollRequired()) {
+			if ((*it1)->ScrollSting())
+				UpdateDisplay();
+		}
+	}
+}
+
+void Display::Screen::ProceedMessage(KeyEvent * ev)
+{
+
+	switch (KeyEvents[0]->eCode)
+	{
+	case EventCode::UpKeyPress:
+		DispatchMessage();
+		if (UpKeyCallback != nullptr)
+			UpKeyCallback(display, 0);
+		break;
+	case EventCode::DownKeyPress:
+		DispatchMessage();
+		if (DownKeyCallback != nullptr)
+			DownKeyCallback(display, 0);
+		break;
+	case EventCode::LeftKeyPress:
+		DispatchMessage();
+		if (LeftKeyCallback != nullptr)
+			LeftKeyCallback(display, 0);
+		break;
+	case EventCode::RightKeyPress:
+		DispatchMessage();
+		if (RightKeyCallback != nullptr)
+			RightKeyCallback(display, 0);
+		break;
+	case EventCode::MidKeyPress:
+		DispatchMessage();
+		{
+			std::list<DisplayString*>::iterator it1 = Lines->begin();
+			std::advance(it1, SelectedLine - 1);
+			if ((*it1)->ItemPressedCallback != nullptr)
+				(*it1)->ItemPressedCallback(display, 0);
+		}
+		break;
+	default:
+		DispatchMessage();
+		break;
+	}
+
 }
 
 void Display::Screen::Scroll(int offset)
@@ -134,6 +237,8 @@ void Display::Screen::EnableMenu(int headerLen, int DefaultCursorPos)
 	isMenu = true;
 	HeaderLen = headerLen;
 	SelectedLine = DefaultCursorPos;
+	UpKeyCallback = [this](Display* disp, uint32_t param) { ScrollMenu(-1); };
+	DownKeyCallback = [this](Display* disp, uint32_t param) { ScrollMenu(1); };
 }
 
 void Display::Screen::ScrollMenu(int offset)
@@ -174,6 +279,11 @@ int Display::Screen::GetSelectedIndex()
 	return SelectedLine;
 }
 
+void Display::Screen::ReturnToPrevMenu(Display * disp, uint32_t param)
+{
+	isActive = false;
+}
+
 size_t Display::Screen::SetLine(DisplayString* line, int pos)
 {
 	if (pos > LinesCount - 1) {
@@ -181,8 +291,8 @@ size_t Display::Screen::SetLine(DisplayString* line, int pos)
 	}
 	std::list<DisplayString*>::iterator it = Lines->begin();
 	std::advance(it, pos);
-	delete *it;
-	*it = line;
+	(**it) = (*line);
+	delete line;
 	LinesCount = Lines->size();
 	UpdateScrllFlag();
 	return LinesCount;

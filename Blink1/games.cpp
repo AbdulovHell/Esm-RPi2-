@@ -23,100 +23,39 @@
 #define D_LEFT 4
 
 #include "games.h"
+#include "Colorize.h"
 
 namespace Games {
 	using namespace std;
 	using namespace Display;
 	using namespace Stuff;
 
-	int LaunchSecretMenu(Display::Display * disp)
+	void LaunchSecretMenu(Display::Display * disp, uint32_t param)
 	{
+		//printf("%s: Secter menu founded\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str());
 		Display::Screen* menu = new Display::Screen(disp);
 		menu->AddLine(new Display::DisplayString(L"Секретное меню", Display::DisplayString::Alignment::Center));
-		menu->AddLine(new Display::DisplayString(L" Самоуничтожение"));
-		menu->AddLine(new Display::DisplayString(L" Гонки"));
-		menu->AddLine(new Display::DisplayString(L" Змейка"));
-		menu->AddLine(new Display::DisplayString(L" Тетрис"));
-		menu->AddLine(new Display::DisplayString(L" Выход"));
+		menu->AddLine(new Display::DisplayString(L" Самоуничтожение", Selfdestruction));
+		menu->AddLine(new Display::DisplayString(L" Гонки", RacingMenu));
+		menu->AddLine(new Display::DisplayString(L" Змейка", SnakeMenu));
+		menu->AddLine(new Display::DisplayString(L" Тетрис", TetrisGame));
+		menu->AddLine(new Display::DisplayString(L" Выход", [menu](Display::Display* d, uint32_t p) { menu->ReturnToPrevMenu(d,p); }));
 		menu->EnableMenu(1, 2);
 		menu->SetActive();
-
-		int size;
-		bool snake = false, racing = false, tetris = false;;
-		while (1) {
-			Display::ScreenMutex.lock();
-			size = Display::KeyEvents.size();
-			if (size > 0) {
-				switch (Display::KeyEvents[0]->eCode)
-				{
-				case EventCode::UpKeyPress:
-					menu->ScrollMenu(-1);
-					break;
-				case EventCode::DownKeyPress:
-					menu->ScrollMenu(1);
-					break;
-				case EventCode::MidKeyPress:
-					switch (menu->GetSelectedIndex()) {
-					case 2:
-						Selfdestruction(disp);
-						menu->SetActive();
-						break;
-					case 3:
-						racing = true;
-						break;
-					case 4:
-						snake = true;
-						break;
-					case 5:
-						tetris = true;
-						break;
-					case 6:
-						Display::KeyEvents.erase(Display::KeyEvents.begin());
-						Display::ScreenMutex.unlock();
-						return 1;
-					default:
-						break;
-					}
-					break;
-				default:
-					break;
-				}
-				Display::KeyEvents.erase(Display::KeyEvents.begin());
-			}
-			Display::ScreenMutex.unlock();
-
-			if (snake) {
-				SnakeMenu(disp);
-				menu->SetActive();
-				snake = false;
-			}
-			if (racing) {
-				RacingMenu(disp);
-				menu->SetActive();
-				racing = false;
-			}
-			if (tetris) {
-				TetrisGame(disp);
-				menu->SetActive();
-				tetris = false;
-			}
-		}
-
-		return 0;
 	}
 
-	void Selfdestruction(Display::Display * disp)
+	void Selfdestruction(Display::Display * disp, uint32_t param)
 	{
-		disp->Power(1, Display::Display::Cursor::NoCursor_NoFlashing);
+		disp->SetCursorType(Display::Display::Cursor::NoCursor_NoFlashing);
 		Display::Screen* scr = new Display::Screen(disp);
 		scr->AddLine(new Display::DisplayString(L"Обратный отсчет:", Display::DisplayString::Alignment::Center));
 		scr->AddLine(new Display::DisplayString(L""));
 		scr->AddLine(new Display::DisplayString(L"5с", Display::DisplayString::Alignment::Center));
 		scr->AddLine(new Display::DisplayString(L""));
-		scr->SetActive();
+		scr->UpdateDisplay();
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		scr->SetLine(new Display::DisplayString(L"4с", Display::DisplayString::Alignment::Center), 2);
-		scr->SetActive();
+		scr->UpdateDisplay();
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		int rnd = 100;
 		char buf[20];
@@ -140,19 +79,19 @@ namespace Games {
 					swprintf(txt, 20, L"Рекорд: %d", Stuff::RecordsStorage->GetSelfdestructRecord());
 					scr->SetLine(new Display::DisplayString(txt, Display::DisplayString::Alignment::Center), 3);
 				}
-				scr->SetActive();
+				scr->UpdateDisplay();
 				std::this_thread::sleep_for(std::chrono::seconds(5));
 				return;
 			}
 			else {
 				scr->SetLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center), 2);
-				scr->SetActive();
+				scr->UpdateDisplay();
 			}
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 		}
 	}
 
-	void SnakeMenu(Display::Display * disp)
+	void SnakeMenu(Display::Display * disp, uint32_t param)
 	{
 		int size, speed = 5;
 		bool start = false, isBordless = true;
@@ -166,7 +105,7 @@ namespace Games {
 		scr->AddLine(new Display::DisplayString(L" Без границ: Д"));
 		scr->AddLine(new Display::DisplayString(L" Выход"));
 		scr->EnableMenu(0, 1);
-		scr->SetActive();
+		scr->UpdateDisplay();
 
 		while (1) {
 			Display::ScreenMutex.lock();
@@ -191,12 +130,12 @@ namespace Games {
 							speed = 1;
 						spdtext[11] = speed + 48;
 						scr->SetLine(new Display::DisplayString(spdtext), 1);
-						scr->SetActive();
+						scr->UpdateDisplay();
 						break;
 					case 3:
 						isBordless = !isBordless;
 						scr->SetLine(new Display::DisplayString((isBordless) ? L" Без границ: Д" : L" Без границ: Н"), 2);
-						scr->SetActive();
+						scr->UpdateDisplay();
 						break;
 					case 4:
 						Display::KeyEvents.erase(Display::KeyEvents.begin());
@@ -235,9 +174,9 @@ namespace Games {
 				else {
 					resscr.AddLine(new Display::DisplayString(" "));
 				}
-				resscr.SetActive();
+				resscr.UpdateDisplay();
 				this_thread::sleep_for(chrono::seconds(3));
-				scr->SetActive();
+				scr->UpdateDisplay();
 				start = false;
 			}
 		}
@@ -284,7 +223,7 @@ namespace Games {
 
 		for (int i = 0; i < 4; i++)
 			scr->AddLine(new Display::DisplayString(table[i]));
-		scr->SetActive();
+		scr->UpdateDisplay();
 		disp->Power(1, Display::Display::Cursor::NoCursor_NoFlashing);
 
 		while (1) {
@@ -425,12 +364,12 @@ namespace Games {
 			//обновляем дисплей
 			for (int i = 0; i < 4; i++)
 				scr->SetLine(new Display::DisplayString(table[i]), i);
-			scr->SetActive();
+			scr->UpdateDisplay();
 			this_thread::sleep_for(chrono::milliseconds(speed_ms));
 		}
 	}
 
-	void RacingMenu(Display::Display * disp)
+	void RacingMenu(Display::Display * disp, uint32_t param)
 	{
 		int size, speed = 5;
 		bool start = false;
@@ -444,7 +383,7 @@ namespace Games {
 		scr->AddLine(new Display::DisplayString(L" "));
 		scr->AddLine(new Display::DisplayString(L" Выход"));
 		scr->EnableMenu(0, 1);
-		scr->SetActive();
+		scr->UpdateDisplay();
 
 		while (1) {
 			Display::ScreenMutex.lock();
@@ -469,7 +408,7 @@ namespace Games {
 							speed = 1;
 						spdtext[11] = speed + 48;
 						scr->SetLine(new Display::DisplayString(spdtext), 1);
-						scr->SetActive();
+						scr->UpdateDisplay();
 						break;
 					case 3:
 						break;
@@ -510,9 +449,9 @@ namespace Games {
 				else {
 					resscr.AddLine(new Display::DisplayString(" "));
 				}
-				resscr.SetActive();
+				resscr.UpdateDisplay();
 				this_thread::sleep_for(chrono::seconds(3));
-				scr->SetActive();
+				scr->UpdateDisplay();
 				start = false;
 			}
 		}
@@ -543,7 +482,7 @@ namespace Games {
 		track->AddLine(new Display::DisplayString(tr[0]));
 		track->AddLine(new Display::DisplayString(tr[1]));
 		track->AddLine(new Display::DisplayString(border));
-		track->SetActive();
+		track->UpdateDisplay();
 
 		while (1) {
 			do {
@@ -612,7 +551,7 @@ namespace Games {
 
 			track->SetLine(new Display::DisplayString(tr[0]), 1);
 			track->SetLine(new Display::DisplayString(tr[1]), 2);
-			track->SetActive();
+			track->UpdateDisplay();
 			Score++;
 			this_thread::sleep_for(chrono::milliseconds(speed_ms));
 		}
@@ -753,7 +692,7 @@ namespace Games {
 			}
 		}
 	}
-	int TetrisGame(Display::Display * disp)
+	void TetrisGame(Display::Display * disp, uint32_t param)
 	{
 		int Score = 0;
 		char scorebuf[15];
@@ -784,7 +723,7 @@ namespace Games {
 		/*r[3][10] = 0xA0;*/ r[3][0] = 3; r[3][1] = 7; r[3][2] = 0xA0;
 
 		sprintf(scorebuf, "Score: %d", Score);
-		for (int i = 3; i < strlen(scorebuf) + 3 && i < 20; i++) {
+		for (size_t i = 3; i < strlen(scorebuf) + 3 && i < 20; i++) {
 			r[0][i] = scorebuf[i - 3];
 		}
 
@@ -792,7 +731,7 @@ namespace Games {
 		scr->AddLine(new Display::DisplayString(r[1], 20));
 		scr->AddLine(new Display::DisplayString(r[2], 20));
 		scr->AddLine(new Display::DisplayString(r[3], 20));
-		scr->SetActive();
+		scr->UpdateDisplay();
 
 		bool InAction = false;
 		Figure* figure = nullptr;
@@ -828,7 +767,7 @@ namespace Games {
 					delete[] r;
 					Display::KeyEvents.erase(Display::KeyEvents.begin());
 					Display::ScreenMutex.unlock();
-					return -1;
+					return ;
 				case EventCode::DownKeyPress:
 					Delay = 1;
 					UserInputCounterTicks = 10;
@@ -895,11 +834,11 @@ namespace Games {
 							i++;
 							Score += 10;
 							sprintf(scorebuf, "Score: %d", Score);
-							for (int i = 3; i < strlen(scorebuf) + 3 && i < 20; i++) {
+							for (size_t i = 3; i < strlen(scorebuf) + 3 && i < 20; i++) {
 								r[0][i] = scorebuf[i - 3];
 							}
 							scr->SetLine(new Display::DisplayString(r[0], 20), 0);
-							scr->SetActive();
+							scr->UpdateDisplay();
 						}
 					}
 				}
@@ -934,7 +873,7 @@ namespace Games {
 					delete[] r;
 					//Losing
 					this_thread::sleep_for(chrono::seconds(3));
-					return Score;
+					return ;
 				}
 			//Создание новой фигурки
 			if (!InAction) {
@@ -968,6 +907,6 @@ namespace Games {
 			delete[] r[i];
 		}
 		delete[] r;
-		return -1;
+		return ;
 	}
 }

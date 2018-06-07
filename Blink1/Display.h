@@ -3,9 +3,12 @@
 
 #define LEFT 0
 #define RIGHT 1
+#define MAX_STRING_LENGTH 255
+#define MAX_VISIBLE_LENGTH 20
 
 namespace Display {
 	using namespace std;
+	class Display;
 
 	struct CustomSymbol {
 		char Rows[8];
@@ -14,10 +17,13 @@ namespace Display {
 	};
 
 	class DisplayString {
-		char str[20];
-
+		char str[MAX_STRING_LENGTH];
+		bool ScrollRequired;
+		int scrollOffset = 0;
+		bool rightScrolling = false;
 		//перевод кирилицы в кодировку второй таблицы знакогенератора
 		char ToP1(wchar_t symb);
+		uint32_t ScrollSkipCounter = 0;
 	public:
 		//Выравнивание текста в строке
 		enum class Alignment {
@@ -26,13 +32,24 @@ namespace Display {
 			Center
 		};
 
+		DisplayString operator= (DisplayString other);
+
+		bool isScrollRequired() { return ScrollRequired; };
+
 		DisplayString(const char* txt);
-		DisplayString(unsigned char* arr,size_t len);
+		DisplayString(unsigned char* arr, size_t len);
 		DisplayString(const char* txt, Alignment at);
 		DisplayString(const wchar_t* txt);
+		DisplayString(const wchar_t* txt, std::function<void(Display*, uint32_t)>);
 		DisplayString(const wchar_t* txt, Alignment at);
+		DisplayString(const wchar_t* txt, Alignment at, std::function<void(Display*, uint32_t)>);
 		//Возвращает итоговую строку,форматированную под дисплей
 		const char* GetString() const;
+
+		bool ScrollSting();
+		bool ResetPosition();
+
+		std::function<void(Display*, uint32_t)> ItemPressedCallback;
 	};
 
 	class Display {
@@ -68,6 +85,7 @@ namespace Display {
 		void ReturnHome();
 		void EntryModeSet(uint8_t ID, uint8_t SH);
 		void Power(uint8_t state, Cursor cursor);
+		void SetCursorType(Cursor cursor);
 		void CursorShift(uint8_t RL);
 		void DisplayShift(uint8_t RL);
 		void WriteDataToRAM(uint8_t msg);

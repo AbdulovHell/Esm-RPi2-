@@ -282,7 +282,7 @@ namespace Games {
 			unsigned char** tempBuf = Copy();
 			bool Rotated = false;
 
-			if (Center.second != 0 && Center.second != 9)
+			if (Center.second != 0 && Center.second != 9) {
 				if (Center.second - 1 >= 0 && tempBuf[Center.first - 1][Center.second - 1] == 1) {
 					tempBuf[Center.first - 1][Center.second - 1] = 0;
 					tempBuf[Center.first - 1][Center.second] = 0;
@@ -319,16 +319,16 @@ namespace Games {
 					tempBuf[Center.first + 1][Center.second] = 1;
 					Rotated = true;
 				}
-
-				if (Rotated && !Collide(image, pos, tempBuf)) {
-					for (int i = 0; i < 4; i++)
-						for (int j = 0; j < 10; j++)
-							FigureSpace[i][j] = tempBuf[i][j];
-					Delete(tempBuf);
-					return true;
-				}
+			}
+			if (Rotated && !Collide(image, pos, tempBuf)) {
+				for (int i = 0; i < 4; i++)
+					for (int j = 0; j < 10; j++)
+						FigureSpace[i][j] = tempBuf[i][j];
 				Delete(tempBuf);
-				return false;
+				return true;
+			}
+			Delete(tempBuf);
+			return false;
 		}
 
 		int InitPos() {
@@ -350,7 +350,7 @@ namespace Games {
 			unsigned char** tempBuf = Copy();
 			bool Rotated = false;
 
-			if (Center.second != 0 && Center.second != 9)
+			if (Center.second != 0 && Center.second != 9) {
 				if (Center.second + 1 < 10 && tempBuf[Center.first - 1][Center.second + 1] == 1) {
 					tempBuf[Center.first - 1][Center.second + 1] = 0;
 					tempBuf[Center.first - 1][Center.second] = 0;
@@ -387,16 +387,16 @@ namespace Games {
 					tempBuf[Center.first + 1][Center.second] = 1;
 					Rotated = true;
 				}
-
-				if (Rotated && !Collide(image, pos, tempBuf)) {
-					for (int i = 0; i < 4; i++)
-						for (int j = 0; j < 10; j++)
-							FigureSpace[i][j] = tempBuf[i][j];
-					Delete(tempBuf);
-					return true;
-				}
+			}
+			if (Rotated && !Collide(image, pos, tempBuf)) {
+				for (int i = 0; i < 4; i++)
+					for (int j = 0; j < 10; j++)
+						FigureSpace[i][j] = tempBuf[i][j];
 				Delete(tempBuf);
-				return false;
+				return true;
+			}
+			Delete(tempBuf);
+			return false;
 		}
 
 		int InitPos() {
@@ -459,7 +459,7 @@ namespace Games {
 	class Z2 : public Figure {
 	public:
 		Z2() : Figure() {
-											    FigureSpace[0][4] = ACTIONFIGURE; FigureSpace[0][5] = ACTIONFIGURE;
+			FigureSpace[0][4] = ACTIONFIGURE; FigureSpace[0][5] = ACTIONFIGURE;
 			FigureSpace[1][3] = ACTIONFIGURE;	FigureSpace[1][4] = ACTIONFIGURE;
 			Center.first = 1;
 			Center.second = 4;

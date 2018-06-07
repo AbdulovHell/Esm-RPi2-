@@ -1,9 +1,11 @@
 #ifndef _SCREEN_H_
 #define _SCREEN_H_
 
+#include "KeyEvents.h"
+
 namespace Display {
 	using namespace std;
-	
+
 	class Screen {
 		//Указатель на инициализированый дисплей
 		Display* display;
@@ -16,7 +18,9 @@ namespace Display {
 		//Индекс верхней строки, отображаемой на дисплее
 		int TopLine;
 		//Меню?
-		bool isMenu=false;
+		bool isMenu = false;
+		//Активность обработчика
+		bool isActive = true;
 		//Длинна шапки меню
 		int HeaderLen = 0;
 		//Текущая позиция указателя для меню
@@ -24,10 +28,15 @@ namespace Display {
 
 		//Обновление флага наличия прокрутки, вызывать при любом изменении Lines
 		void UpdateScrllFlag();
-		//Обновление изображения на дисплее, каждый раз при изменении
-		void UpdateDisplay();
 		//Отрисовка полосы прокрутки, если количество строк превышает 4
 		void DrawScrollBar();
+
+		
+
+		std::function<void(Display*, uint32_t)> UpKeyCallback;
+		std::function<void(Display*, uint32_t)> DownKeyCallback;
+		std::function<void(Display*, uint32_t)> LeftKeyCallback;
+		std::function<void(Display*, uint32_t)> RightKeyCallback;
 
 	public:
 		Screen(Display* disp);
@@ -41,13 +50,19 @@ namespace Display {
 		int Count();
 		bool isScrollable();
 		void SetActive();
+		void ProceedMessage(KeyEvent* ev);
 		//Прокрутка содержимого дисплея
 		void Scroll(int offset);
-		void EnableMenu(int HeaderLen,int DefaultCursorPos);
+		void EnableMenu(int HeaderLen, int DefaultCursorPos);
 		//Прокрутка пункта меню
 		void ScrollMenu(int offset);
-		//
+		//Индекс выбранного пункта
 		int GetSelectedIndex();
+		//Функция выхода в предыдущее меню
+		void ReturnToPrevMenu(Display* disp, uint32_t param);
+		//Обновление изображения на дисплее, каждый раз при изменении
+		void UpdateDisplay();
+		void DispatchMessage();
 	};
 }
 
