@@ -178,7 +178,7 @@ namespace Threading {
 		Display::Screen* main_menu = new Display::Screen(disp);
 		//Добавление пунктов меню
 		main_menu->AddLine(new Display::DisplayString(L"Главное меню", Display::DisplayString::Alignment::Center));
-		main_menu->AddLine(new Display::DisplayString(L" Частота и затухание_тест_длинны123.", FreqAndAttMenu));
+		main_menu->AddLine(new Display::DisplayString(L" Частота и атт.", FreqAndAttMenu));
 		main_menu->AddLine(new Display::DisplayString(L" Каналы"));
 		main_menu->AddLine(new Display::DisplayString(L" Статус"));
 		main_menu->AddLine(new Display::DisplayString(L" Настройки"));

@@ -3,8 +3,8 @@
 
 #define LEFT 0
 #define RIGHT 1
-#define MAX_STRING_LENGTH 255
-#define MAX_VISIBLE_LENGTH 20
+//#define MAX_STRING_LENGTH 255
+//#define MAX_VISIBLE_LENGTH 20
 
 namespace Display {
 	using namespace std;
@@ -17,13 +17,13 @@ namespace Display {
 	};
 
 	class DisplayString {
-		char str[MAX_STRING_LENGTH];
-		bool ScrollRequired;
-		int scrollOffset = 0;
-		bool rightScrolling = false;
+		char str[20];
+		//bool ScrollRequired;
+		//int scrollOffset = 0;
+		//bool rightScrolling = false;
 		//перевод кирилицы в кодировку второй таблицы знакогенератора
 		char ToP1(wchar_t symb);
-		uint32_t ScrollSkipCounter = 0;
+		//uint32_t ScrollSkipCounter = 0;
 	public:
 		//Выравнивание текста в строке
 		enum class Alignment {
@@ -34,7 +34,7 @@ namespace Display {
 
 		DisplayString operator= (DisplayString other);
 
-		bool isScrollRequired() { return ScrollRequired; };
+		//bool isScrollRequired() { return ScrollRequired; };
 
 		DisplayString(const char* txt);
 		DisplayString(unsigned char* arr, size_t len);
@@ -46,8 +46,8 @@ namespace Display {
 		//Возвращает итоговую строку,форматированную под дисплей
 		const char* GetString() const;
 
-		bool ScrollSting();
-		bool ResetPosition();
+		//bool ScrollSting();
+		//bool ResetPosition();
 
 		std::function<void(Display*, uint32_t)> ItemPressedCallback;
 	};

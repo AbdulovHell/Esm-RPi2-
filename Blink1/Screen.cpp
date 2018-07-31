@@ -167,12 +167,12 @@ void Display::Screen::SetActive()
 			}
 			UpdateDisplay();
 		}
-		std::list<DisplayString*>::iterator it1 = Lines->begin();
-		std::advance(it1, SelectedLine - 1);
-		if ((*it1)->isScrollRequired()) {
+		/*std::list<DisplayString*>::iterator it1 = Lines->begin();
+		std::advance(it1, SelectedLine - 1);*/
+		/*if ((*it1)->isScrollRequired()) {
 			if ((*it1)->ScrollSting())
 				UpdateDisplay();
-		}
+		}*/
 	}
 }
 

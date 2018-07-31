@@ -238,7 +238,7 @@ void Display::Display::SetScreen(list<DisplayString*>* strs, size_t topline)
 		SetCursorPos(i - topline + 1, 1);
 		DisplayString* str = *it;
 		const char* temp = str->GetString();
-		for (int j = 0; j < MAX_VISIBLE_LENGTH; j++) {
+		for (int j = 0; j < 20; j++) {
 			WriteDataToRAM(temp[j]);
 		}
 	}
@@ -284,7 +284,7 @@ char Display::DisplayString::ToP1(wchar_t symb)
 
 Display::DisplayString Display::DisplayString::operator=(DisplayString other)
 {
-	for (int i = 0; i < MAX_STRING_LENGTH; i++)
+	for (int i = 0; i < 20; i++)
 		str[i] = other.str[i];
 	return *this;
 }
@@ -293,52 +293,52 @@ Display::DisplayString::DisplayString(const char * txt)
 {
 	//default align = left
 	int len = (int)strlen(txt);
-	if (len > MAX_VISIBLE_LENGTH) ScrollRequired = true;
-	else ScrollRequired = false;
+	if (len > 20) len=20;
+
 	for (int i = 0; i < len; i++)
 		str[i] = txt[i];
-	for (int i = len; i < MAX_STRING_LENGTH; i++) {
+	for (int i = len; i < 20; i++) {
 		str[i] = ' ';
 	}
-	str[MAX_STRING_LENGTH - 1] = 0xAA;
+	//str[MAX_STRING_LENGTH - 1] = 0xAA;
 }
 
 Display::DisplayString::DisplayString(unsigned char * arr, size_t len)
 {
-	if (len > MAX_VISIBLE_LENGTH) ScrollRequired = true;
-	else ScrollRequired = false;
+	if (len > 20)  len = 20;
+	//else ScrollRequired = false;
 	for (size_t i = 0; i < len; i++)
 		str[i] = arr[i];
-	for (size_t i = len; i < MAX_STRING_LENGTH; i++) {
+	for (size_t i = len; i < 20; i++) {
 		str[i] = ' ';
 	}
-	str[MAX_STRING_LENGTH - 1] = 0xAA;
+	//str[MAX_STRING_LENGTH - 1] = 0xAA;
 }
 
 Display::DisplayString::DisplayString(const char * txt, Alignment at)
 {
 	int len = (int)strlen(txt);
-	if (len > MAX_VISIBLE_LENGTH) ScrollRequired = true;
-	else ScrollRequired = false;
+	if (len > 20)  len = 20;
+	//else ScrollRequired = false;
 	switch (at)
 	{
 	case DisplayString::Alignment::Left:
 		for (int i = 0; i < len; i++)
 			str[i] = txt[i];
-		for (int i = len; i < MAX_STRING_LENGTH; i++) {
+		for (int i = len; i < 20; i++) {
 			str[i] = ' ';
 		}
 		break;
 	case DisplayString::Alignment::Right:
-		for (int i = 0; i < MAX_STRING_LENGTH - len; i++)
+		for (int i = 0; i < 20 - len; i++)
 			str[i] = ' ';
-		for (int i = MAX_STRING_LENGTH - len; i < MAX_STRING_LENGTH; i++) {
-			str[i] = txt[i - (MAX_STRING_LENGTH - len)];
+		for (int i = 20 - len; i < 20; i++) {
+			str[i] = txt[i - (20 - len)];
 		}
 		break;
 	case DisplayString::Alignment::Center:
 	{
-		int leftspace = (MAX_STRING_LENGTH - len) / 2;
+		int leftspace = (20 - len) / 2;
 		//int rightspace = (20 - len) / 2 + (20 - len) % 2;
 		for (int i = 0; i < leftspace; i++) {
 			str[i] = ' ';
@@ -346,7 +346,7 @@ Display::DisplayString::DisplayString(const char * txt, Alignment at)
 		for (int i = leftspace; i < leftspace + len; i++) {
 			str[i] = txt[i - leftspace];
 		}
-		for (int i = leftspace + len; i < MAX_STRING_LENGTH; i++) {
+		for (int i = leftspace + len; i < 20; i++) {
 			str[i] = ' ';
 		}
 	}
@@ -354,21 +354,21 @@ Display::DisplayString::DisplayString(const char * txt, Alignment at)
 	default:
 		break;
 	}
-	str[MAX_STRING_LENGTH - 1] = 0xAA;
+	//str[MAX_STRING_LENGTH - 1] = 0xAA;
 }
 
 Display::DisplayString::DisplayString(const wchar_t * txt)
 {
 	//default align = left
 	int len = (int)wcslen(txt);
-	if (len > MAX_VISIBLE_LENGTH) ScrollRequired = true;
-	else ScrollRequired = false;
+	if (len > 20)  len = 20;
+	//else ScrollRequired = false;
 	for (int i = 0; i < len; i++)
 		str[i] = ToP1(txt[i]);
-	for (int i = len; i < MAX_STRING_LENGTH; i++) {
+	for (int i = len; i < 20; i++) {
 		str[i] = ' ';
 	}
-	str[MAX_STRING_LENGTH - 1] = 0xAA;
+	//str[MAX_STRING_LENGTH - 1] = 0xAA;
 }
 
 Display::DisplayString::DisplayString(const wchar_t * txt, std::function<void(Display*, uint32_t)> callback)
@@ -376,40 +376,40 @@ Display::DisplayString::DisplayString(const wchar_t * txt, std::function<void(Di
 	ItemPressedCallback = callback;
 	//default align = left
 	int len = (int)wcslen(txt);
-	if (len > MAX_VISIBLE_LENGTH) ScrollRequired = true;
-	else ScrollRequired = false;
+	if (len > 20)  len = 20;
+	//else ScrollRequired = false;
 	for (int i = 0; i < len; i++)
 		str[i] = ToP1(txt[i]);
-	for (int i = len; i < MAX_STRING_LENGTH; i++) {
+	for (int i = len; i < 20; i++) {
 		str[i] = ' ';
 	}
-	str[MAX_STRING_LENGTH - 1] = 0xAA;
+	//str[MAX_STRING_LENGTH - 1] = 0xAA;
 }
 
 Display::DisplayString::DisplayString(const wchar_t * txt, Alignment at)
 {
 	int len = (int)wcslen(txt);
-	if (len > MAX_VISIBLE_LENGTH) ScrollRequired = true;
-	else ScrollRequired = false;
+	if (len > 20)  len = 20;
+	//else ScrollRequired = false;
 	switch (at)
 	{
 	case DisplayString::Alignment::Left:
 		for (int i = 0; i < len; i++)
 			str[i] = ToP1(txt[i]);
-		for (int i = len; i < MAX_STRING_LENGTH; i++) {
+		for (int i = len; i < 20; i++) {
 			str[i] = ' ';
 		}
 		break;
 	case DisplayString::Alignment::Right:
-		for (int i = 0; i < MAX_STRING_LENGTH - len; i++)
+		for (int i = 0; i < 20 - len; i++)
 			str[i] = ' ';
-		for (int i = MAX_VISIBLE_LENGTH - len; i < MAX_STRING_LENGTH; i++) {
-			str[i] = ToP1(txt[i - (MAX_STRING_LENGTH - len)]);
+		for (int i = 20 - len; i < 20; i++) {
+			str[i] = ToP1(txt[i - (20 - len)]);
 		}
 		break;
 	case DisplayString::Alignment::Center:
 	{
-		int leftspace = (MAX_STRING_LENGTH - len) / 2;
+		int leftspace = (20 - len) / 2;
 		//int rightspace = (20 - len) / 2 + (20 - len) % 2;
 		for (int i = 0; i < leftspace; i++) {
 			str[i] = ' ';
@@ -417,7 +417,7 @@ Display::DisplayString::DisplayString(const wchar_t * txt, Alignment at)
 		for (int i = leftspace; i < leftspace + len; i++) {
 			str[i] = ToP1(txt[i - leftspace]);
 		}
-		for (int i = leftspace + len; i < MAX_STRING_LENGTH; i++) {
+		for (int i = leftspace + len; i < 20; i++) {
 			str[i] = ' ';
 		}
 	}
@@ -425,7 +425,7 @@ Display::DisplayString::DisplayString(const wchar_t * txt, Alignment at)
 	default:
 		break;
 	}
-	str[MAX_STRING_LENGTH - 1] = 0xAA;
+	//str[MAX_STRING_LENGTH - 1] = 0xAA;
 }
 
 Display::DisplayString::DisplayString(const wchar_t * txt, Alignment at, std::function<void(Display*, uint32_t)> callback)
@@ -433,27 +433,27 @@ Display::DisplayString::DisplayString(const wchar_t * txt, Alignment at, std::fu
 	ItemPressedCallback = callback;
 
 	int len = (int)wcslen(txt);
-	if (len > MAX_VISIBLE_LENGTH) ScrollRequired = true;
-	else ScrollRequired = false;
+	if (len > 20)  len = 20;
+	//else ScrollRequired = false;
 	switch (at)
 	{
 	case DisplayString::Alignment::Left:
 		for (int i = 0; i < len; i++)
 			str[i] = ToP1(txt[i]);
-		for (int i = len; i < MAX_STRING_LENGTH; i++) {
+		for (int i = len; i < 20; i++) {
 			str[i] = ' ';
 		}
 		break;
 	case DisplayString::Alignment::Right:
-		for (int i = 0; i < MAX_STRING_LENGTH - len; i++)
+		for (int i = 0; i < 20 - len; i++)
 			str[i] = ' ';
-		for (int i = MAX_STRING_LENGTH - len; i < MAX_STRING_LENGTH; i++) {
-			str[i] = ToP1(txt[i - (MAX_STRING_LENGTH - len)]);
+		for (int i = 20 - len; i < 20; i++) {
+			str[i] = ToP1(txt[i - (20 - len)]);
 		}
 		break;
 	case DisplayString::Alignment::Center:
 	{
-		int leftspace = (MAX_STRING_LENGTH - len) / 2;
+		int leftspace = (20 - len) / 2;
 		//int rightspace = (20 - len) / 2 + (20 - len) % 2;
 		for (int i = 0; i < leftspace; i++) {
 			str[i] = ' ';
@@ -461,7 +461,7 @@ Display::DisplayString::DisplayString(const wchar_t * txt, Alignment at, std::fu
 		for (int i = leftspace; i < leftspace + len; i++) {
 			str[i] = ToP1(txt[i - leftspace]);
 		}
-		for (int i = leftspace + len; i < MAX_STRING_LENGTH; i++) {
+		for (int i = leftspace + len; i < 20; i++) {
 			str[i] = ' ';
 		}
 	}
@@ -469,7 +469,7 @@ Display::DisplayString::DisplayString(const wchar_t * txt, Alignment at, std::fu
 	default:
 		break;
 	}
-	str[MAX_STRING_LENGTH - 1] = 0xAA;
+	//str[MAX_STRING_LENGTH - 1] = 0xAA;
 }
 
 const char * Display::DisplayString::GetString() const
@@ -477,37 +477,37 @@ const char * Display::DisplayString::GetString() const
 	return str;
 }
 
-bool Display::DisplayString::ScrollSting()
-{
-	ScrollSkipCounter++;
-	if (ScrollSkipCounter % 400000 != 0) return false;
-	char temp;
-	if (rightScrolling) {
-		temp = str[MAX_STRING_LENGTH - 1];
-		for (int i = MAX_STRING_LENGTH - 1; i > 0; i--) {
-			str[i] = str[i - 1];
-		}
-		str[0] = temp;
-		scrollOffset++;
-		if (str[MAX_STRING_LENGTH-1] == 0xAA) {
-			rightScrolling = false;
-		}
-	}
-	else {
-		temp = str[0];
-		for (int i = 1; i < MAX_STRING_LENGTH-1; i++) {
-			str[i] = str[i + 1];
-		}
-		str[MAX_STRING_LENGTH - 1] = temp;
-		scrollOffset--;
-		if (str[19] == 0) {
-			rightScrolling = true;
-		}
-	}
-	return true;
-}
-
-bool Display::DisplayString::ResetPosition()
-{
-	return true;
-}
+//bool Display::DisplayString::ScrollSting()
+//{
+//	ScrollSkipCounter++;
+//	if (ScrollSkipCounter % 400000 != 0) return false;
+//	char temp;
+//	if (rightScrolling) {
+//		temp = str[MAX_STRING_LENGTH - 1];
+//		for (int i = MAX_STRING_LENGTH - 1; i > 0; i--) {
+//			str[i] = str[i - 1];
+//		}
+//		str[0] = temp;
+//		scrollOffset++;
+//		if (str[MAX_STRING_LENGTH-1] == 0xAA) {
+//			rightScrolling = false;
+//		}
+//	}
+//	else {
+//		temp = str[0];
+//		for (int i = 1; i < MAX_STRING_LENGTH-1; i++) {
+//			str[i] = str[i + 1];
+//		}
+//		str[MAX_STRING_LENGTH - 1] = temp;
+//		scrollOffset--;
+//		if (str[19] == 0) {
+//			rightScrolling = true;
+//		}
+//	}
+//	return true;
+//}
+//
+//bool Display::DisplayString::ResetPosition()
+//{
+//	return true;
+//}
