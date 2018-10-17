@@ -19,7 +19,7 @@
 // , которая использует gpio export для настройки значений для wiringPiSetupSys
 
 //#define UART_TEST //успешно
-#define I2C_TEST	//успешно
+//#define I2C_TEST	//успешно
 //#define SPI_TEST	//
 
 using namespace Threading;
@@ -32,9 +32,18 @@ namespace Threading {
 	vector<Threading::Task*> MainTasks;
 	std::mutex* TasksMutex;
 
+
+
 #ifdef _DEBUG
 	ConsoleInputThread* ciThrd;
 #endif
+
+	void AddTask(Threading::Task * tsk)
+	{
+		TasksMutex->lock();
+		MainTasks.push_back(tsk);
+		TasksMutex->unlock();
+	}
 }
 
 void InitShutdown() {
@@ -138,6 +147,15 @@ int main(int argc, char* argv[])
 	IO::SPI dev(0, 10000);
 #endif
 
+	/*for (int i = 0x20; i < 0x28; i++) {
+		IO::I2C dev(i);
+		if (!dev.IsOpen())
+			cout << dev.GetError() << endl;
+
+		uint16_t dt=dev.Read2bytesReg(5);
+		printf("Addr %x : %x\n",i,dt);
+	}*/
+
 	while (Working)
 	{
 #ifdef SPI_TEST
@@ -162,6 +180,8 @@ int main(int argc, char* argv[])
 			}
 		}
 		ListenersMutex->unlock();
+
+
 
 #ifdef UART_TEST
 		//char* buf = new char[32];

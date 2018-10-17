@@ -20,7 +20,7 @@ void Display::Screen::UpdateDisplay()
 	display->SetScreen(Lines, TopLine);
 	DrawScrollBar();
 	if (isMenu) {
-		display->Power(1, Display::Cursor::NoCursor_SymbolFlashing);
+		display->Power(1, cursor);
 		display->SetCursorPos(SelectedLine - TopLine, 1);
 	}
 }
@@ -67,6 +67,17 @@ Display::Screen::Screen(Display * disp)
 	bScrollable = false;
 	TopLine = 0;
 	display = disp;
+	cursor = Display::Cursor::NoCursor_SymbolFlashing;
+}
+
+Display::Screen::Screen(Display * disp, Display::Cursor curs)
+{
+	Lines = new list<DisplayString*>;
+	LinesCount = Lines->size();
+	bScrollable = false;
+	TopLine = 0;
+	display = disp;
+	cursor = curs;
 }
 
 Display::DisplayString* Display::Screen::operator[](size_t c)
@@ -120,6 +131,7 @@ bool Display::Screen::isScrollable()
 void Display::Screen::SetActive()
 {
 	UpdateDisplay();
+	bool needUpdate = false;
 	if (!isActive) isActive = true;
 	int size = 0;
 	while (isActive) {
@@ -165,14 +177,71 @@ void Display::Screen::SetActive()
 				DispatchMessage();
 				break;
 			}
+			needUpdate = true;
+		}
+		if (needUpdate) {
+			needUpdate = false;
 			UpdateDisplay();
 		}
-		/*std::list<DisplayString*>::iterator it1 = Lines->begin();
-		std::advance(it1, SelectedLine - 1);*/
-		/*if ((*it1)->isScrollRequired()) {
-			if ((*it1)->ScrollSting())
-				UpdateDisplay();
-		}*/
+	}
+}
+
+void Display::Screen::SetActive(std::function<bool(uint32_t)> loop)
+{
+	UpdateDisplay();
+	bool needUpdate = false;
+	if (!isActive) isActive = true;
+	int size = 0;
+	while (isActive) {
+		size = KeyEvents.size();
+		if (size > 0) {
+			ScreenMutex.lock();
+			switch (KeyEvents[0]->eCode)
+			{
+			case EventCode::UpKeyPress:
+				DispatchMessage();
+				if (UpKeyCallback != nullptr)
+					UpKeyCallback(display, 0);
+				break;
+			case EventCode::DownKeyPress:
+				DispatchMessage();
+				if (DownKeyCallback != nullptr)
+					DownKeyCallback(display, 0);
+				break;
+			case EventCode::LeftKeyPress:
+				DispatchMessage();
+				if (LeftKeyCallback != nullptr)
+					LeftKeyCallback(display, 0);
+				break;
+			case EventCode::RightKeyPress:
+				DispatchMessage();
+				if (RightKeyCallback != nullptr)
+					RightKeyCallback(display, 0);
+				break;
+			case EventCode::MidKeyPress:
+				//printf("%s: Mid key pressed\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str());
+				DispatchMessage();
+				//printf("%s: dispatch\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str());
+				{
+					std::list<DisplayString*>::iterator it1 = Lines->begin();
+					std::advance(it1, SelectedLine - 1);
+					if ((*it1)->ItemPressedCallback != nullptr) {
+						printf("%s: func ptr finded, %s\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), (*it1)->GetString());
+						(*it1)->ItemPressedCallback(display, 0);
+					}
+				}
+				break;
+			default:
+				DispatchMessage();
+				break;
+			}
+			needUpdate = true;
+		}
+		needUpdate=loop(NULL);
+		if (needUpdate) {
+			needUpdate = false;
+			UpdateDisplay();
+		}
 	}
 }
 

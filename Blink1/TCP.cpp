@@ -5,6 +5,7 @@
 #include "TCP.h"
 #include "main.h"
 #include "Task.h"
+#include "I2C.h"
 
 namespace Threading {
 	std::vector<Threading::TCPReciverThread*> Listeners;
@@ -57,26 +58,20 @@ namespace Threading {
 		RTData* data = (RTData*)param;
 		int reciver = data->iSocket;
 		bool* stopflag = data->bStopFlag;
-		char buf[1024];
+		char buf[128];
 		int bytes_read;
 		printf("%s(%d): Start working\n", Stuff::MakeColor("RECV", Stuff::Yellow).c_str(), reciver);
 		while (1) {
-			bytes_read = recv(reciver, buf, 1024, 0);
+			bytes_read = recv(reciver, buf, 128, 0);
 			if (bytes_read <= 0) break;
 			//проверка
-			if (!Stuff::Verify(buf)) break;
+			//if (!Stuff::Verify(buf)) break;
 			//обработка
-			switch (buf[1]) {	//type id
+			switch (buf[0]) {	//type id
 			case 1:
 			{
-				buf[0] = 'e';
-				buf[1] = 1;
-				buf[2] = 2;
-				buf[3] = 0;
-				buf[4] = 'O';
-				buf[5] = 'K';
-				Stuff::CalcSum(buf, 8);
-				send(reciver, buf, 1024, 0);
+				sprintf(buf, "Connected\n");
+				send(reciver, buf, 128, 0);
 			}
 			break;
 			case 2:
@@ -85,6 +80,30 @@ namespace Threading {
 				TasksMutex->lock();
 				MainTasks.push_back(new TaskSetAttCh(buf[5], buf[4]));
 				TasksMutex->unlock();
+			}
+			break;
+			case 11:
+			{
+				IO::I2C dev(0x20 + buf[1]);
+				if (dev.IsOpen()) {
+					for (int i = 0; i < 16; i++) {
+						buf[i + 2] = dev.ReadByteFromReg(i + 8);
+					}
+				}
+				send(reciver, buf, 128, 0);
+			}
+			break;
+			case 12:
+			{
+				IO::I2C dev(0x20 + buf[1]);
+				if (dev.IsOpen()) {
+					for (int i = 0; i < 16; i++) {
+						dev.WriteReg((uint8_t)buf[i + 2], i + 8);
+					}
+					dev.WriteReg((uint8_t)2, 0); //команда на обновление eeprom
+				}
+				sprintf(buf, "Debug att written to block %d.\n", buf[1]);
+				send(reciver, buf, 128, 0);
 			}
 			break;
 			default:

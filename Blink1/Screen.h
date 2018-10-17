@@ -31,6 +31,8 @@ namespace Display {
 		//ќтрисовка полосы прокрутки, если количество строк превышает 4
 		void DrawScrollBar();
 
+		Display::Cursor cursor;
+
 		
 
 		std::function<void(Display*, uint32_t)> UpKeyCallback;
@@ -40,6 +42,7 @@ namespace Display {
 
 	public:
 		Screen(Display* disp);
+		Screen(Display* disp,Display::Cursor curs);
 
 		DisplayString* operator[] (size_t c);
 
@@ -48,8 +51,13 @@ namespace Display {
 		size_t SetLine(DisplayString* line, int pos);
 		size_t RemoveLine(size_t num);
 		int Count();
+
 		bool isScrollable();
+
 		void SetActive();
+
+		void SetActive(std::function<bool(uint32_t)>);
+
 		void ProceedMessage(KeyEvent* ev);
 		//ѕрокрутка содержимого диспле€
 		void Scroll(int offset);

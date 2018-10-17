@@ -22,6 +22,16 @@ int IO::I2C::Read()
 	return wiringPiI2CRead(fd);
 }
 
+short IO::I2C::Read2BytesFromReg(int reg)
+{
+	return (short)wiringPiI2CReadReg16(fd,reg);
+}
+
+uint8_t IO::I2C::ReadByteFromReg(int reg)
+{
+	return (uint8_t)wiringPiI2CReadReg8(fd, reg);
+}
+
 int IO::I2C::Write(uint8_t dt)
 {
 	return wiringPiI2CWrite(fd, dt);

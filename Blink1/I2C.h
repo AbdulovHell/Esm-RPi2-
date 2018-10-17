@@ -12,8 +12,14 @@ namespace IO {
 	public:
 		//адрес устройства для подключения
 		I2C(int addr);
+
+
 		//чтение байта с у-ва
 		int Read();
+
+		short Read2BytesFromReg(int reg);
+		uint8_t ReadByteFromReg(int reg);
+
 		//запись байта в у-во
 		int Write(uint8_t dt);
 		//запись массива байт в у-во

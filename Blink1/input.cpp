@@ -77,8 +77,52 @@ namespace Threading {
 
 	void * ButtonsInputThread::ScanButtons(void * ptr_null)
 	{
-		while (1) {
+		int Pressed[5] = { 0,0,0,0,0 };
+		int ButtonsPin[5] = { 4,17,27,22,23 };
+		int TempState[5] = { 0,0,0,0,0 };
 
+		for (int i = 0; i < 5; i++) {
+			digitalWrite(ButtonsPin[i], 0);
+			pinMode(ButtonsPin[i], INPUT);
+		}
+
+		while (1) {
+			for (int i = 0; i < 5; i++)
+				TempState[i] = digitalRead(ButtonsPin[i]);
+
+			for (int i = 0; i < 5; i++) {
+				if (Pressed[i] != TempState[i] && Pressed[i] == 1) {	//состояние изменилось, кнопку отпустили
+					//printf("INPUT: Button %d Now: %d Last: %d\n",ButtonsPin[i],TempState[i],Pressed[i]);
+					Display::ScreenMutex.lock();
+					switch (ButtonsPin[i])
+					{
+					case 17:
+						Display::KeyEvents.push_back(new Display::KeyEvent(Display::EventCode::UpKeyPress));
+						//printf("%s: Up key\n", Stuff::MakeColor("INPUT", Stuff::Blue).c_str());
+						break;
+					case 23:
+						Display::KeyEvents.push_back(new Display::KeyEvent(Display::EventCode::LeftKeyPress));
+						//printf("%s: Left key\n", Stuff::MakeColor("INPUT", Stuff::Blue).c_str());
+						break;
+					case 22:
+						Display::KeyEvents.push_back(new Display::KeyEvent(Display::EventCode::DownKeyPress));
+						//printf("%s: Down key\n", Stuff::MakeColor("INPUT", Stuff::Blue).c_str());
+						break;
+					case 27:
+						Display::KeyEvents.push_back(new Display::KeyEvent(Display::EventCode::RightKeyPress));
+						//printf("%s: Right key\n", Stuff::MakeColor("INPUT", Stuff::Blue).c_str());
+						break;
+					case 4:
+						Display::KeyEvents.push_back(new Display::KeyEvent(Display::EventCode::MidKeyPress));
+						//printf("%s: OK key\n", Stuff::MakeColor("INPUT", Stuff::Blue).c_str());
+						break;
+					default:
+						break;
+					}
+					Display::ScreenMutex.unlock();
+				}
+				Pressed[i] = TempState[i];
+			}
 		}
 		return nullptr;
 	}
