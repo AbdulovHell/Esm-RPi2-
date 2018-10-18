@@ -25,7 +25,7 @@ namespace Display {
 	{
 		Screen* scr = new Screen(disp);
 		uint8_t mode = 0;	//select
-		int32_t Freq = 1000;
+		int32_t Freq = 3000;
 		int32_t prevFreq = Freq;
 		uint8_t RFinAtt = 0;
 		uint8_t IFAtt = 0;
@@ -539,7 +539,7 @@ namespace Threading {
 		main_menu->AddLine(new Display::DisplayString(L"FREQUENCY & ATT.", Display::DisplayString::Alignment::Center, FreqAndAttMenu));
 		main_menu->AddLine(new Display::DisplayString(L"SETTINGS", Display::DisplayString::Alignment::Center, SetupMenu));
 		main_menu->AddLine(new Display::DisplayString(L"STATUS", Display::DisplayString::Alignment::Center, StatusMenu));
-		main_menu->AddLine(new Display::DisplayString(L" ", Display::DisplayString::Alignment::Center, Games::LaunchSecretMenu));
+		//main_menu->AddLine(new Display::DisplayString(L" ", Display::DisplayString::Alignment::Center, Games::LaunchSecretMenu));
 		//Включение полосы прокрутки и маркера строки
 		main_menu->EnableMenu(1, 2);
 

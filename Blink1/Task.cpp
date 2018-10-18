@@ -112,10 +112,11 @@ void Threading::TaskSetAtt::Run()
 	//8-15
 	b8_15->WriteReg(RFatt, 2);
 	b8_15->WriteReg(cmd, 0);
+	printf("Set att 8-15: %d\n", RFatt);
 	//3-8
 	if (RFatt > 15) RFatt = 15;
 	uint8_t temp = (RFatt << 4) + (IFatt & 0xF);
-	printf("Set att: 0x%X\n", temp);
+	printf("Set att 3-8: 0x%X\n", temp);
 	b3_8->WriteReg(temp, 2);
 	b3_8->WriteReg(cmd, 0);	
 }
