@@ -10,7 +10,6 @@
 using namespace std;
 
 bool once = false;
-IO::SPI* dev;
 IO::I2C* b3_8 = nullptr;
 IO::I2C* b8_15 = nullptr;
 
@@ -40,111 +39,9 @@ void Threading::TaskRequestTemp::Run()
 
 void Threading::TaskSetFreq::Run()
 {
-	if (!once) {
-		once = true;
-		//init spi
-		dev = new IO::SPI(0, 19200);
-		pinMode(25, OUTPUT);
-		digitalWrite(25, 1);
-		this_thread::sleep_for(std::chrono::milliseconds(100));
+	if (b3_8 == nullptr) b3_8 = new IO::I2C(0x24);
+	if (b8_15 == nullptr) b8_15 = new IO::I2C(0x25);
 
-		cout << "send ref out on" << endl;
-		{
-			this_thread::sleep_for(std::chrono::milliseconds(1));
-			//ref out on
-			//set chip select
-			digitalWrite(25, 0);
-			this_thread::sleep_for(std::chrono::microseconds(10));
-			//send data
-			uint8_t buf1[2] = { 0x08,1 };
-			dev->DataRW(buf1, 2);
-			//reset chip select
-			this_thread::sleep_for(std::chrono::microseconds(10));
-			digitalWrite(25, 1);
-		}
-		{
-			this_thread::sleep_for(std::chrono::milliseconds(1));
-			//ref out on
-			//set chip select
-			digitalWrite(25, 0);
-			this_thread::sleep_for(std::chrono::microseconds(10));
-			//send data
-			uint8_t buf1[2] = { 0x08,1 };
-			dev->DataRW(buf1, 2);
-			//reset chip select
-			this_thread::sleep_for(std::chrono::microseconds(10));
-			digitalWrite(25, 1);
-		}
-		cout << "send RF out on" << endl;
-		{
-			this_thread::sleep_for(std::chrono::milliseconds(1));
-			//RF out on
-			//set chip select
-			digitalWrite(25, 0);
-			this_thread::sleep_for(std::chrono::microseconds(10));
-			//send data
-			uint8_t buf2[2] = { 0x0F,1 };
-			dev->DataRW(buf2, 2);
-			//reset chip select
-			this_thread::sleep_for(std::chrono::microseconds(10));
-			digitalWrite(25, 1);
-		}
-		{
-			this_thread::sleep_for(std::chrono::milliseconds(1));
-			//RF out on
-			//set chip select
-			digitalWrite(25, 0);
-			this_thread::sleep_for(std::chrono::microseconds(10));
-			//send data
-			uint8_t buf2[2] = { 0x0F,1 };
-			dev->DataRW(buf2, 2);
-			//reset chip select
-			this_thread::sleep_for(std::chrono::microseconds(10));
-			digitalWrite(25, 1);
-		}
-		//I2C
-		if (b3_8 == nullptr) b3_8 = new IO::I2C(0x24);
-	}
-
-	cout << "send freq" << endl;
-	{
-		this_thread::sleep_for(std::chrono::milliseconds(1));
-		//set chip select
-		digitalWrite(25, 0);
-		this_thread::sleep_for(std::chrono::microseconds(10));
-		//send data
-		double Units = Freq * 1000000000.0;
-		printf("Units : %f \n", Units);
-		uint8_t ubuf[8];
-		uint8_t buf[7] = { 0x0C,0,0,0,0,0,0 };
-		uint64_t iUnits = Units;
-		printf("iUnits : %u64 \n", iUnits);
-		memcpy(ubuf, &iUnits, 8);
-		for (int i = 1, j = 5; i < 7; i++, j--)
-			buf[i] = ubuf[j];
-		printf("%X: %X %X %X %X %X %X \n", buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6]);
-		dev->DataRW(buf, 7);
-		//reset chip select
-		this_thread::sleep_for(std::chrono::microseconds(10));
-		digitalWrite(25, 1);
-	}
-	{
-		this_thread::sleep_for(std::chrono::microseconds(10));
-		//set chip select
-		digitalWrite(25, 0);
-		this_thread::sleep_for(std::chrono::microseconds(10));
-		//send data
-		uint64_t Units = (uint64_t)Freq*(uint64_t)1000000000;
-		uint8_t ubuf[8];
-		memcpy(ubuf, &Units, 8);
-		uint8_t buf[7] = { 0x0C,0,0,0,0,0,0 };
-		for (int i = 1, j = 7; i < 7; i++, j--)
-			buf[i] = ubuf[j];
-		dev->DataRW(buf, 7);
-		//reset chip select
-		this_thread::sleep_for(std::chrono::microseconds(10));
-		digitalWrite(25, 1);
-	}
 	//I2C
 	uint8_t ch = 0;
 	const uint8_t cmd = 1;
@@ -161,6 +58,10 @@ void Threading::TaskSetFreq::Run()
 	else if (Freq < 33000) ch = 11;
 	else if (Freq < 36000) ch = 12;
 	else if (Freq < 40000) ch = 13;
+
+	b8_15->WriteReg(ch, 1);
+	b8_15->WriteReg(cmd, 0);
+
 	b3_8->WriteReg(ch, 1);
 	b3_8->WriteReg(cmd, 0);
 }
