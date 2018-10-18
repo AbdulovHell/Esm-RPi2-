@@ -131,10 +131,10 @@ namespace Display {
 							{
 								int mult = 10 - pos;
 								RFinAtt += Pow(10, mult);
-								if (RFinAtt > 15) RFinAtt = 15;
+								if (RFinAtt > 25) RFinAtt = 25;
 								swprintf(AttRFinStr, 20, L"RF ATT: %2d dB", RFinAtt);
 								scr->SetLine(new DisplayString(AttRFinStr), 1);
-								Threading::AddTask(new Threading::TaskSetAtt((RFinAtt << 4) + (IFAtt & 0xF)));
+								Threading::AddTask(new Threading::TaskSetAtt(RFinAtt,IFAtt));
 							}
 							break;
 						case EventCode::DownKeyPress:
@@ -142,10 +142,10 @@ namespace Display {
 							{
 								int mult = 10 - pos;
 								RFinAtt -= Pow(10, mult);
-								if (RFinAtt > 15) RFinAtt = 15;
+								if (RFinAtt > 25) RFinAtt = 25;
 								swprintf(AttRFinStr, 20, L"RF ATT: %2d dB", RFinAtt);
 								scr->SetLine(new DisplayString(AttRFinStr), 1);
-								Threading::AddTask(new Threading::TaskSetAtt((RFinAtt << 4) + (IFAtt & 0xF)));
+								Threading::AddTask(new Threading::TaskSetAtt(RFinAtt, IFAtt));
 							}
 							break;
 						case EventCode::LeftKeyPress:
@@ -192,7 +192,7 @@ namespace Display {
 								if (IFAtt > 15) IFAtt = 15;
 								swprintf(AttIFStr, 20, L"IF ATT: %2d dB", IFAtt);
 								scr->SetLine(new DisplayString(AttIFStr), 2);
-								Threading::AddTask(new Threading::TaskSetAtt((RFinAtt << 4) + (IFAtt & 0xF)));
+								Threading::AddTask(new Threading::TaskSetAtt(RFinAtt, IFAtt));
 							}
 							break;
 						case EventCode::DownKeyPress:
@@ -203,7 +203,7 @@ namespace Display {
 								if (IFAtt > 15) IFAtt = 15;
 								swprintf(AttIFStr, 20, L"IF ATT: %2d dB", IFAtt);
 								scr->SetLine(new DisplayString(AttIFStr), 2);
-								Threading::AddTask(new Threading::TaskSetAtt((RFinAtt << 4) + (IFAtt & 0xF)));
+								Threading::AddTask(new Threading::TaskSetAtt(RFinAtt, IFAtt));
 							}
 							break;
 						case EventCode::LeftKeyPress:

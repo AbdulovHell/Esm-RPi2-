@@ -35,9 +35,10 @@ namespace Threading{
 	};
 
 	class TaskSetAtt : virtual public Task {
-		uint8_t att;
+		uint8_t RFatt;
+		uint8_t IFatt;
 	public:
-		TaskSetAtt(uint8_t _att) { att = _att; }
+		TaskSetAtt(uint8_t _RFatt, uint8_t _IFatt) { RFatt = _RFatt; IFatt = _IFatt; }
 
 		TaskType GetType() { return TaskType::SetAtt; }
 		void Run();

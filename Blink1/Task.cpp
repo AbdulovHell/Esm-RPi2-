@@ -12,6 +12,7 @@ using namespace std;
 bool once = false;
 IO::SPI* dev;
 IO::I2C* b3_8 = nullptr;
+IO::I2C* b8_15 = nullptr;
 
 void Threading::TaskSetAttCh::Run()
 {
@@ -203,11 +204,17 @@ void Threading::TaskSetOutput::Run()
 
 void Threading::TaskSetAtt::Run()
 {
+	const uint8_t cmd = 1;
 	//I2C
 	if (b3_8 == nullptr) b3_8 = new IO::I2C(0x24);
-	//I2C
-	printf("Set att: 0x%X\n", att);
-	const uint8_t cmd = 1;
-	b3_8->WriteReg(att, 2);
-	b3_8->WriteReg(cmd, 0);
+	if (b8_15 == nullptr) b8_15 = new IO::I2C(0x25);
+	//8-15
+	b8_15->WriteReg(RFatt, 2);
+	b8_15->WriteReg(cmd, 0);
+	//3-8
+	if (RFatt > 15) RFatt = 15;
+	uint8_t temp = (RFatt << 4) + (IFatt & 0xF);
+	printf("Set att: 0x%X\n", temp);
+	b3_8->WriteReg(temp, 2);
+	b3_8->WriteReg(cmd, 0);	
 }
