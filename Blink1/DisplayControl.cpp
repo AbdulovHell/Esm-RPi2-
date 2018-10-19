@@ -539,7 +539,7 @@ namespace Threading {
 		main_menu->AddLine(new Display::DisplayString(L"FREQUENCY & ATT.", Display::DisplayString::Alignment::Center, FreqAndAttMenu));
 		main_menu->AddLine(new Display::DisplayString(L"SETTINGS", Display::DisplayString::Alignment::Center, SetupMenu));
 		main_menu->AddLine(new Display::DisplayString(L"STATUS", Display::DisplayString::Alignment::Center, StatusMenu));
-		//main_menu->AddLine(new Display::DisplayString(L" ", Display::DisplayString::Alignment::Center, Games::LaunchSecretMenu));
+		main_menu->AddLine(new Display::DisplayString(L" ", Display::DisplayString::Alignment::Center, Games::LaunchSecretMenu));
 		//Включение полосы прокрутки и маркера строки
 		main_menu->EnableMenu(1, 2);
 

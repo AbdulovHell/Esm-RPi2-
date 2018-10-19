@@ -34,12 +34,12 @@ namespace Games {
 	{
 		//printf("%s: Secter menu founded\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str());
 		Display::Screen* menu = new Display::Screen(disp);
-		menu->AddLine(new Display::DisplayString(L"Секретное меню", Display::DisplayString::Alignment::Center));
-		menu->AddLine(new Display::DisplayString(L" Самоуничтожение", Selfdestruction));
-		menu->AddLine(new Display::DisplayString(L" Гонки", RacingMenu));
-		menu->AddLine(new Display::DisplayString(L" Змейка", SnakeMenu));
-		menu->AddLine(new Display::DisplayString(L" Тетрис", TetrisGame));
-		menu->AddLine(new Display::DisplayString(L" Выход", [menu](Display::Display* d, uint32_t p) { menu->ReturnToPrevMenu(d,p); }));
+		menu->AddLine(new Display::DisplayString(L"Secret menu", Display::DisplayString::Alignment::Center));
+		menu->AddLine(new Display::DisplayString(L" Selfdestruction", Selfdestruction));
+		menu->AddLine(new Display::DisplayString(L" Racing", RacingMenu));
+		menu->AddLine(new Display::DisplayString(L" Snake", SnakeMenu));
+		menu->AddLine(new Display::DisplayString(L" Tetris", TetrisGame));
+		menu->AddLine(new Display::DisplayString(L" Exit", [menu](Display::Display* d, uint32_t p) { menu->ReturnToPrevMenu(d,p); }));
 		menu->EnableMenu(1, 2);
 		menu->SetActive();
 	}
@@ -48,13 +48,13 @@ namespace Games {
 	{
 		disp->SetCursorType(Display::Display::Cursor::NoCursor_NoFlashing);
 		Display::Screen* scr = new Display::Screen(disp);
-		scr->AddLine(new Display::DisplayString(L"Обратный отсчет:", Display::DisplayString::Alignment::Center));
+		scr->AddLine(new Display::DisplayString(L"Counting out:", Display::DisplayString::Alignment::Center));
 		scr->AddLine(new Display::DisplayString(L""));
-		scr->AddLine(new Display::DisplayString(L"5с", Display::DisplayString::Alignment::Center));
+		scr->AddLine(new Display::DisplayString(L"5s", Display::DisplayString::Alignment::Center));
 		scr->AddLine(new Display::DisplayString(L""));
 		scr->UpdateDisplay();
 		std::this_thread::sleep_for(std::chrono::seconds(1));
-		scr->SetLine(new Display::DisplayString(L"4с", Display::DisplayString::Alignment::Center), 2);
+		scr->SetLine(new Display::DisplayString(L"4s", Display::DisplayString::Alignment::Center), 2);
 		scr->UpdateDisplay();
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		int rnd = 100;
@@ -63,20 +63,20 @@ namespace Games {
 		int cnt = 0;
 		while (1) {
 			rnd = Stuff::RangeRand(0, 9);
-			sprintf(buf, "%dc", rnd);
+			sprintf(buf, "%ds", rnd);
 			cnt++;
 			if (!rnd) {
 				scr->SetLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center), 0);
-				scr->SetLine(new Display::DisplayString(L"Вы погибли", Display::DisplayString::Alignment::Center), 1);
+				scr->SetLine(new Display::DisplayString(L"You dead", Display::DisplayString::Alignment::Center), 1);
 				wchar_t txt[20];
-				swprintf(txt, 20, L"c %d попытки", cnt);
+				swprintf(txt, 20, L"at %d attempt", cnt);
 				scr->SetLine(new Display::DisplayString(txt, Display::DisplayString::Alignment::Center), 2);
 				if (cnt > Stuff::RecordsStorage->GetSelfdestructRecord()) {
 					Stuff::RecordsStorage->SetSelfdestructRecord(cnt);
-					scr->SetLine(new Display::DisplayString(L"Новый рекорд", Display::DisplayString::Alignment::Center), 3);
+					scr->SetLine(new Display::DisplayString(L"New record", Display::DisplayString::Alignment::Center), 3);
 				}
 				else {
-					swprintf(txt, 20, L"Рекорд: %d", Stuff::RecordsStorage->GetSelfdestructRecord());
+					swprintf(txt, 20, L"Record: %d", Stuff::RecordsStorage->GetSelfdestructRecord());
 					scr->SetLine(new Display::DisplayString(txt, Display::DisplayString::Alignment::Center), 3);
 				}
 				scr->UpdateDisplay();
@@ -95,15 +95,15 @@ namespace Games {
 	{
 		int size, speed = 5;
 		bool start = false, isBordless = true;
-		wchar_t spdtext[20] = L" Скорость: 0";
+		wchar_t spdtext[20] = L" Speed: 0";
 		spdtext[11] = speed + 48;
 
 		disp->Power(1, Display::Display::Cursor::NoCursor_SymbolFlashing);
 		Display::Screen* scr = new Display::Screen(disp);
-		scr->AddLine(new Display::DisplayString(L" Старт"));
+		scr->AddLine(new Display::DisplayString(L" Start"));
 		scr->AddLine(new Display::DisplayString(spdtext));
-		scr->AddLine(new Display::DisplayString(L" Без границ: Д"));
-		scr->AddLine(new Display::DisplayString(L" Выход"));
+		scr->AddLine(new Display::DisplayString(L" Bordless: Y"));
+		scr->AddLine(new Display::DisplayString(L" Exit"));
 		scr->EnableMenu(0, 1);
 		scr->UpdateDisplay();
 
@@ -134,7 +134,7 @@ namespace Games {
 						break;
 					case 3:
 						isBordless = !isBordless;
-						scr->SetLine(new Display::DisplayString((isBordless) ? L" Без границ: Д" : L" Без границ: Н"), 2);
+						scr->SetLine(new Display::DisplayString((isBordless) ? L" Bordless: Y" : L" Bordless: N"), 2);
 						scr->UpdateDisplay();
 						break;
 					case 4:
@@ -162,14 +162,14 @@ namespace Games {
 				}
 
 				Display::Screen resscr(disp);
-				resscr.AddLine(new Display::DisplayString(L"Конец", Display::DisplayString::Alignment::Center));
+				resscr.AddLine(new Display::DisplayString(L"End", Display::DisplayString::Alignment::Center));
 				wchar_t buf[20];
-				swprintf(buf, 20, L"Очки: %d", res);
+				swprintf(buf, 20, L"Score: %d", res);
 				resscr.AddLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center));
-				swprintf(buf, 20, L"Рекорд: %d", RecordsStorage->GetSnakeRecord());
+				swprintf(buf, 20, L"Record: %d", RecordsStorage->GetSnakeRecord());
 				resscr.AddLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center));
 				if (record) {
-					resscr.AddLine(new Display::DisplayString(L"Новый рекорд", Display::DisplayString::Alignment::Center));
+					resscr.AddLine(new Display::DisplayString(L"New record", Display::DisplayString::Alignment::Center));
 				}
 				else {
 					resscr.AddLine(new Display::DisplayString(" "));
@@ -373,15 +373,15 @@ namespace Games {
 	{
 		int size, speed = 5;
 		bool start = false;
-		wchar_t spdtext[20] = L" Скорость: 0";
+		wchar_t spdtext[20] = L" Speed: 0";
 		spdtext[11] = speed + 48;
 
 		disp->Power(1, Display::Display::Cursor::NoCursor_SymbolFlashing);
 		Display::Screen* scr = new Display::Screen(disp);
-		scr->AddLine(new Display::DisplayString(L" Старт"));
+		scr->AddLine(new Display::DisplayString(L" Start"));
 		scr->AddLine(new Display::DisplayString(spdtext));
 		scr->AddLine(new Display::DisplayString(L" "));
-		scr->AddLine(new Display::DisplayString(L" Выход"));
+		scr->AddLine(new Display::DisplayString(L" Exit"));
 		scr->EnableMenu(0, 1);
 		scr->UpdateDisplay();
 
@@ -437,14 +437,14 @@ namespace Games {
 				}
 
 				Display::Screen resscr(disp);
-				resscr.AddLine(new Display::DisplayString(L"Конец", Display::DisplayString::Alignment::Center));
+				resscr.AddLine(new Display::DisplayString(L"End", Display::DisplayString::Alignment::Center));
 				wchar_t buf[20];
-				swprintf(buf, 20, L"Очки: %d", res);
+				swprintf(buf, 20, L"Score: %d", res);
 				resscr.AddLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center));
-				swprintf(buf, 20, L"Рекорд: %d", RecordsStorage->GetRacingRecord());
+				swprintf(buf, 20, L"Record: %d", RecordsStorage->GetRacingRecord());
 				resscr.AddLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center));
 				if (record) {
-					resscr.AddLine(new Display::DisplayString(L"Новый рекорд", Display::DisplayString::Alignment::Center));
+					resscr.AddLine(new Display::DisplayString(L"New record", Display::DisplayString::Alignment::Center));
 				}
 				else {
 					resscr.AddLine(new Display::DisplayString(" "));
