@@ -48,6 +48,7 @@ namespace Display {
 
 		size_t AddLine(DisplayString* txt);
 		size_t AddLine(DisplayString* txt, size_t pos);
+		//отсчет от 0!
 		size_t SetLine(DisplayString* line, int pos);
 		size_t RemoveLine(size_t num);
 		int Count();

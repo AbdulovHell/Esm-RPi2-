@@ -9,6 +9,7 @@ IO::Usart::Usart(int baud)
 	fd = serialOpen("/dev/ttyAMA0", baud);
 	if (fd == -1) {
 		error_str = "UART Open error";
+		std::cout << "Errno: " << errno << std::endl;
 	}
 	else {
 		opened = true;

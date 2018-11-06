@@ -57,6 +57,15 @@ namespace Games {
 		scr->SetLine(new Display::DisplayString(L"4s", Display::DisplayString::Alignment::Center), 2);
 		scr->UpdateDisplay();
 		std::this_thread::sleep_for(std::chrono::seconds(1));
+		scr->SetLine(new Display::DisplayString(L"3s", Display::DisplayString::Alignment::Center), 2);
+		scr->UpdateDisplay();
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		scr->SetLine(new Display::DisplayString(L"2s", Display::DisplayString::Alignment::Center), 2);
+		scr->UpdateDisplay();
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		scr->SetLine(new Display::DisplayString(L"1s", Display::DisplayString::Alignment::Center), 2);
+		scr->UpdateDisplay();
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 		int rnd = 100;
 		char buf[20];
 		srand(time(NULL));
@@ -96,7 +105,7 @@ namespace Games {
 		int size, speed = 5;
 		bool start = false, isBordless = true;
 		wchar_t spdtext[20] = L" Speed: 0";
-		spdtext[11] = speed + 48;
+		spdtext[8] = speed + 48;
 
 		disp->Power(1, Display::Display::Cursor::NoCursor_SymbolFlashing);
 		Display::Screen* scr = new Display::Screen(disp);
@@ -128,7 +137,7 @@ namespace Games {
 						speed++;
 						if (speed > 9)
 							speed = 1;
-						spdtext[11] = speed + 48;
+						spdtext[8] = speed + 48;
 						scr->SetLine(new Display::DisplayString(spdtext), 1);
 						scr->UpdateDisplay();
 						break;
@@ -374,7 +383,7 @@ namespace Games {
 		int size, speed = 5;
 		bool start = false;
 		wchar_t spdtext[20] = L" Speed: 0";
-		spdtext[11] = speed + 48;
+		spdtext[8] = speed + 48;
 
 		disp->Power(1, Display::Display::Cursor::NoCursor_SymbolFlashing);
 		Display::Screen* scr = new Display::Screen(disp);
@@ -406,7 +415,7 @@ namespace Games {
 						speed++;
 						if (speed > 9)
 							speed = 1;
-						spdtext[11] = speed + 48;
+						spdtext[8] = speed + 48;
 						scr->SetLine(new Display::DisplayString(spdtext), 1);
 						scr->UpdateDisplay();
 						break;

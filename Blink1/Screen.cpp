@@ -168,7 +168,7 @@ void Display::Screen::SetActive()
 					std::list<DisplayString*>::iterator it1 = Lines->begin();
 					std::advance(it1, SelectedLine - 1);
 					if ((*it1)->ItemPressedCallback != nullptr) {
-						printf("%s: func ptr finded, %s\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), (*it1)->GetString());
+						//printf("%s: func ptr finded, %s\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), (*it1)->GetString());
 						(*it1)->ItemPressedCallback(display, 0);
 					}
 				}
@@ -226,7 +226,7 @@ void Display::Screen::SetActive(std::function<bool(uint32_t)> loop)
 					std::list<DisplayString*>::iterator it1 = Lines->begin();
 					std::advance(it1, SelectedLine - 1);
 					if ((*it1)->ItemPressedCallback != nullptr) {
-						printf("%s: func ptr finded, %s\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), (*it1)->GetString());
+						//printf("%s: func ptr finded, %s\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), (*it1)->GetString());
 						(*it1)->ItemPressedCallback(display, 0);
 					}
 				}
@@ -353,6 +353,7 @@ void Display::Screen::ReturnToPrevMenu(Display * disp, uint32_t param)
 	isActive = false;
 }
 
+//отсчет от 0
 size_t Display::Screen::SetLine(DisplayString* line, int pos)
 {
 	if (pos > LinesCount - 1) {

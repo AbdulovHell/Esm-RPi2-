@@ -12,6 +12,7 @@ namespace Threading{
 		SetPWM,
 		SetOutput,
 		SetAtt,
+		ChangeRef,
 		Empty
 	};
 
@@ -89,6 +90,18 @@ namespace Threading{
 		}
 
 		TaskType GetType() { return TaskType::SetOutput; }
+		void Run();
+	};
+
+	class TaskChangeRef : virtual public Task {
+		uint8_t code = 0;	//0 int 1 ext
+	public:
+		TaskChangeRef(uint8_t _code) {
+			code = _code;
+			//printf("new task freq %d \n", Freq);
+		}
+
+		TaskType GetType() { return TaskType::ChangeRef; }
 		void Run();
 	};
 

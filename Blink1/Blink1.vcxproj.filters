@@ -87,6 +87,9 @@
     <ClCompile Include="LCD.cpp">
       <Filter>Source\Display</Filter>
     </ClCompile>
+    <ClCompile Include="IPChanger.cpp">
+      <Filter>Source\Ethernet</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="threading.h">
@@ -148,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="Tetris.h">
       <Filter>Headers\Stuff\Games</Filter>
+    </ClInclude>
+    <ClInclude Include="IPChanger.h">
+      <Filter>Headers\Ethernet</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

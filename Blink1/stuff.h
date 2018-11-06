@@ -9,6 +9,19 @@ namespace Stuff {
 
 	extern Records* RecordsStorage;
 
+	struct Settings {
+		int Freq;
+		uint8_t att;
+		uint8_t out;
+
+		struct Records {
+			int SnakeRecord;
+			int SelfdestructRecord;
+			int RacingRecord;
+			int TetrisRecord;
+		};
+	};
+
 	//хранилище рекордов игр
 	class Records {
 		int SnakeRecord;

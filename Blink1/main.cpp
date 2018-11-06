@@ -11,6 +11,7 @@
 #include "main.h"
 #include "input.h"
 #include "TCP.h"
+#include "IPChanger.h"
 //#include "LCD.h"
 // Контакт LED — контакт 0 wiringPi равен BCM_GPIO 17.
 // При инициализации с использованием wiringPiSetupSys нужно применять нумерацию BCM
@@ -124,6 +125,8 @@ int main(int argc, char* argv[])
 	//system("gpio load i2c");
 
 	Stuff::RecordsStorage = new Stuff::Records();
+
+	//Threading::ReadIP();
 
 	lcdThrd = new LCDControlThread();
 	biThrd = new ButtonsInputThread();
