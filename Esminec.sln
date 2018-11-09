@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Esminec", "Blink1\Blink1.vcxproj", "{7A2A257B-92B8-4DE0-BD18-575AD7EB1319}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EsmUpdate", "EsmUpdate\EsmUpdate.vcxproj", "{190E2DFB-41A1-42CD-A2FF-82B25C4C3F89}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -23,6 +25,14 @@ Global
 		{7A2A257B-92B8-4DE0-BD18-575AD7EB1319}.Release|ARM.Build.0 = Release|ARM
 		{7A2A257B-92B8-4DE0-BD18-575AD7EB1319}.Release|x64.ActiveCfg = Release|ARM
 		{7A2A257B-92B8-4DE0-BD18-575AD7EB1319}.Release|x86.ActiveCfg = Release|ARM
+		{190E2DFB-41A1-42CD-A2FF-82B25C4C3F89}.Debug|ARM.ActiveCfg = Debug|ARM
+		{190E2DFB-41A1-42CD-A2FF-82B25C4C3F89}.Debug|ARM.Build.0 = Debug|ARM
+		{190E2DFB-41A1-42CD-A2FF-82B25C4C3F89}.Debug|x64.ActiveCfg = Debug|ARM
+		{190E2DFB-41A1-42CD-A2FF-82B25C4C3F89}.Debug|x86.ActiveCfg = Debug|ARM
+		{190E2DFB-41A1-42CD-A2FF-82B25C4C3F89}.Release|ARM.ActiveCfg = Release|ARM
+		{190E2DFB-41A1-42CD-A2FF-82B25C4C3F89}.Release|ARM.Build.0 = Release|ARM
+		{190E2DFB-41A1-42CD-A2FF-82B25C4C3F89}.Release|x64.ActiveCfg = Release|ARM
+		{190E2DFB-41A1-42CD-A2FF-82B25C4C3F89}.Release|x86.ActiveCfg = Release|ARM
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

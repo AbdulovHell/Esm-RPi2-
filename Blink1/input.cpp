@@ -87,6 +87,7 @@ namespace Threading {
 		}
 
 		while (1) {
+			this_thread::sleep_for(std::chrono::microseconds(1));
 			for (int i = 0; i < 5; i++)
 				TempState[i] = digitalRead(ButtonsPin[i]);
 

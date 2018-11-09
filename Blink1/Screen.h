@@ -53,6 +53,8 @@ namespace Display {
 		size_t RemoveLine(size_t num);
 		int Count();
 
+		int TopLineIndex();
+
 		bool isScrollable();
 
 		void SetActive();

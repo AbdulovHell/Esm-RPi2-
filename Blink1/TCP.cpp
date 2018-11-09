@@ -62,6 +62,7 @@ namespace Threading {
 		int bytes_read;
 		printf("%s(%d): Start working\n", Stuff::MakeColor("RECV", Stuff::Yellow).c_str(), reciver);
 		while (1) {
+			//this_thread::sleep_for(std::chrono::microseconds(1));
 			bytes_read = recv(reciver, buf, 128, 0);
 			if (bytes_read <= 0) break;
 			//проверка
@@ -84,7 +85,7 @@ namespace Threading {
 			break;
 			case 11:
 			{
-				IO::I2C dev(0x20 + buf[1]);
+				IO::I2C dev(buf[1]);
 				if (dev.IsOpen()) {
 					for (int i = 0; i < 16; i++) {
 						buf[i + 2] = dev.ReadByteFromReg(i + 8);
@@ -95,7 +96,7 @@ namespace Threading {
 			break;
 			case 12:
 			{
-				IO::I2C dev(0x20 + buf[1]);
+				IO::I2C dev(buf[1]);
 				if (dev.IsOpen()) {
 					for (int i = 0; i < 16; i++) {
 						dev.WriteReg((uint8_t)buf[i + 2], i + 8);

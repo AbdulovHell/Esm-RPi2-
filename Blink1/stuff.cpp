@@ -3,7 +3,7 @@
 #include "stuff.h"
 
 namespace Stuff {
-	Records* RecordsStorage;
+	
 }
 
 bool Stuff::Verify(char * buf)
@@ -40,90 +40,4 @@ int Stuff::RangeRand(int min, int max)
 	return (int)((double)rnd / ((double)RAND_MAX + 1.0)*(max - min) + min);
 }
 
-void Stuff::Records::UpdateFile()
-{
-	ofstream fs("rcrds", ios::out | ios::trunc | ios::binary);
 
-	fs.write((char*)&SnakeRecord, 4);
-	fs.write((char*)&SelfdestructRecord, 4);
-	fs.write((char*)&RacingRecord, 4);
-	fs.close();
-}
-
-Stuff::Records::Records()
-{
-	//попытка загрузки из файла
-	ifstream ifs("rcrds", ios::in | ios::binary);
-	//если файла нет, то установка по умолчанию
-	if (!ifs) {
-		Stuff::Records::SnakeRecord = 0;
-		SelfdestructRecord = 0;
-		RacingRecord = 0;
-		TetrisRecord = 0;
-
-		ofstream fs("rcrds", ios::out | ios::trunc | ios::binary);
-
-		fs.write((char*)&SnakeRecord, 4);
-		fs.write((char*)&SelfdestructRecord, 4);
-		fs.write((char*)&RacingRecord, 4);
-		fs.write((char*)&TetrisRecord, 4);
-		fs.close();
-		return;
-	}
-
-	//иначе парсим файлик
-	char* input = new char[4 * 4];
-	ifs.read(input, 4 * 4);
-
-	memcpy(&SnakeRecord, input, 4);
-	memcpy(&SelfdestructRecord, input + 4, 4);
-	memcpy(&RacingRecord, input + 8, 4);
-	memcpy(&TetrisRecord, input + 12, 4);
-
-	ifs.close();
-	delete[] input;
-}
-
-void Stuff::Records::SetSnakeRecord(int rec)
-{
-	SnakeRecord = rec;
-	UpdateFile();
-}
-
-int Stuff::Records::GetSnakeRecord()
-{
-	return SnakeRecord;
-}
-
-void Stuff::Records::SetSelfdestructRecord(int rec)
-{
-	SelfdestructRecord = rec;
-	UpdateFile();
-}
-
-int Stuff::Records::GetSelfdestructRecord()
-{
-	return SelfdestructRecord;
-}
-
-void Stuff::Records::SetRacingRecord(int rec)
-{
-	RacingRecord = rec;
-	UpdateFile();
-}
-
-int Stuff::Records::GetRacingRecord()
-{
-	return RacingRecord;
-}
-
-void Stuff::Records::SetTetrisRecord(int rec)
-{
-	TetrisRecord = rec;
-	UpdateFile();
-}
-
-int Stuff::Records::GetTetrisRecord()
-{
-	return TetrisRecord;
-}

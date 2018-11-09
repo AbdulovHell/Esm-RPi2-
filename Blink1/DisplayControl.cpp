@@ -6,12 +6,14 @@
 #include "Colorize.h"
 #include "main.h"
 #include "Task.h"
+#include "settings.h"
 
 namespace Display {
 	using namespace std;
 
 	mutex ScreenMutex;
 	vector<KeyEvent*> KeyEvents;
+	const float SoftwareVersion = 1.22;
 
 	template <typename T> T Pow(T base, int n) {
 		if (n == 0) return (T)1;
@@ -25,10 +27,12 @@ namespace Display {
 	{
 		Screen* scr = new Screen(disp);
 		uint8_t mode = 0;	//select
-		int32_t Freq = 3000;
+		int32_t Freq = Stuff::Storage->GetFreq();
 		int32_t prevFreq = Freq;
-		uint8_t RFinAtt = 0;
-		uint8_t IFAtt = 0;
+		uint8_t RFinAtt = Stuff::Storage->GetRFAtt();
+		uint8_t IFAtt = Stuff::Storage->GetIFAtt();
+		const uint8_t pos1485 = 7;
+		const uint8_t pos140 = 13;
 		wchar_t freqstr[20];
 		wchar_t AttRFinStr[20];
 		wchar_t AttIFStr[20];
@@ -38,6 +42,14 @@ namespace Display {
 		swprintf(AttRFinStr, 20, L"RF Att: %2d dB", RFinAtt);
 		swprintf(AttIFStr, 20, L"IF Att: %2d dB", IFAtt);
 		swprintf(OutSelectStr, 20, L"    IF:>1485  140");
+		if (Stuff::Storage->GetIF()) {
+			OutSelectStr[pos1485] = '>';
+			OutSelectStr[pos140] = ' ';
+		}
+		else {
+			OutSelectStr[pos1485] = ' ';
+			OutSelectStr[pos140] = '>';
+		}
 		scr->AddLine(new DisplayString(L"Frequency & Att.", DisplayString::Alignment::Center));
 		scr->AddLine(new DisplayString(freqstr, [&mode, scr](Display * d, uint32_t p) { mode = 1; scr->ReturnToPrevMenu(d, p); }));	//freq select
 		scr->AddLine(new DisplayString(AttRFinStr, [&mode, scr](Display * d, uint32_t p) { mode = 2; scr->ReturnToPrevMenu(d, p); }));
@@ -54,12 +66,13 @@ namespace Display {
 			switch (mode) {
 			case 1:
 			{
+				const int CursorPos = 2;
 				const int LoPos = 13;
 				const int HiPos = 9;
 				bool change = true;
 				size_t size = 0;
 				uint8_t pos = LoPos;
-				disp->SetCursorPos(2, pos);
+				disp->SetCursorPos(CursorPos - scr->TopLineIndex(), pos);
 
 				while (change) {
 					size = KeyEvents.size();
@@ -112,17 +125,19 @@ namespace Display {
 							scr->SetLine(new DisplayString(freqstr), 1);
 						}
 						scr->UpdateDisplay();
-						disp->SetCursorPos(2, pos);
+						disp->SetCursorPos(CursorPos - scr->TopLineIndex(), pos);
 					}
 				}
 			}
 			break;
 			case 2:
 			{
+				const int CursorPos = 3;
 				bool change = true;
+				uint8_t PrevAtt = RFinAtt;
 				size_t size = 0;
 				uint8_t pos = 9;
-				disp->SetCursorPos(3, pos);
+				disp->SetCursorPos(CursorPos - scr->TopLineIndex(), pos);
 
 				while (change) {
 					size = KeyEvents.size();
@@ -135,9 +150,6 @@ namespace Display {
 								int mult = 10 - pos;
 								RFinAtt += Pow(10, mult);
 								if (RFinAtt > 25) RFinAtt = 25;
-								swprintf(AttRFinStr, 20, L"RF Att: %2d dB", RFinAtt);
-								scr->SetLine(new DisplayString(AttRFinStr), 2);
-								Threading::AddTask(new Threading::TaskSetAtt(RFinAtt, IFAtt));
 							}
 							break;
 						case EventCode::DownKeyPress:
@@ -145,10 +157,7 @@ namespace Display {
 							{
 								int mult = 10 - pos;
 								RFinAtt -= Pow(10, mult);
-								if (RFinAtt > 25) RFinAtt = 25;
-								swprintf(AttRFinStr, 20, L"RF Att: %2d dB", RFinAtt);
-								scr->SetLine(new DisplayString(AttRFinStr), 2);
-								Threading::AddTask(new Threading::TaskSetAtt(RFinAtt, IFAtt));
+								if (std::abs(RFinAtt-PrevAtt) > 30) RFinAtt = 0;
 							}
 							break;
 						case EventCode::LeftKeyPress:
@@ -169,18 +178,26 @@ namespace Display {
 							scr->DispatchMessage();
 							break;
 						}
+						if (RFinAtt != PrevAtt) {	//произошло изменение
+							PrevAtt = RFinAtt;
+							swprintf(AttRFinStr, 20, L"RF Att: %2d dB", RFinAtt);
+							scr->SetLine(new DisplayString(AttRFinStr), 2);
+							Threading::AddTask(new Threading::TaskSetAtt(RFinAtt, IFAtt));
+						}
 						scr->UpdateDisplay();
-						disp->SetCursorPos(3, pos);
+						disp->SetCursorPos(CursorPos - scr->TopLineIndex(), pos);
 					}
 				}
 			}
 			break;
 			case 5:
 			{
+				const int CursorPos = 4;
 				bool change = true;
+				uint8_t PrevAtt = IFAtt;
 				size_t size = 0;
 				uint8_t pos = 9;
-				disp->SetCursorPos(4, pos);
+				disp->SetCursorPos(CursorPos - scr->TopLineIndex(), pos);
 
 				while (change) {
 					size = KeyEvents.size();
@@ -193,9 +210,6 @@ namespace Display {
 								int mult = 10 - pos;
 								IFAtt += Pow(10, mult);
 								if (IFAtt > 15) IFAtt = 15;
-								swprintf(AttIFStr, 20, L"IF Att: %2d dB", IFAtt);
-								scr->SetLine(new DisplayString(AttIFStr), 3);
-								Threading::AddTask(new Threading::TaskSetAtt(RFinAtt, IFAtt));
 							}
 							break;
 						case EventCode::DownKeyPress:
@@ -203,10 +217,7 @@ namespace Display {
 							{
 								int mult = 10 - pos;
 								IFAtt -= Pow(10, mult);
-								if (IFAtt > 15) IFAtt = 15;
-								swprintf(AttIFStr, 20, L"IF Att: %2d dB", IFAtt);
-								scr->SetLine(new DisplayString(AttIFStr), 3);
-								Threading::AddTask(new Threading::TaskSetAtt(RFinAtt, IFAtt));
+								if (std::abs(IFAtt - PrevAtt) > 30) IFAtt = 0;
 							}
 							break;
 						case EventCode::LeftKeyPress:
@@ -227,8 +238,14 @@ namespace Display {
 							scr->DispatchMessage();
 							break;
 						}
+						if (IFAtt != PrevAtt) {	//произошло изменение
+							PrevAtt = IFAtt;
+							swprintf(AttIFStr, 20, L"IF Att: %2d dB", IFAtt);
+							scr->SetLine(new DisplayString(AttIFStr), 3);
+							Threading::AddTask(new Threading::TaskSetAtt(RFinAtt, IFAtt));
+						}
 						scr->UpdateDisplay();
-						disp->SetCursorPos(4, pos);
+						disp->SetCursorPos(CursorPos - scr->TopLineIndex(), pos);
 					}
 				}
 			}
@@ -237,8 +254,6 @@ namespace Display {
 			{
 				bool change = true;
 				size_t size = 0;
-				const uint8_t pos1485 = 7;
-				const uint8_t pos140 = 13;
 				uint8_t pos = OutSelectStr[pos1485] == '>' ? pos1485 : pos140;
 				uint8_t prevpos = pos;
 				disp->SetCursorType(Display::Cursor::NoCursor_NoFlashing);
@@ -298,6 +313,56 @@ namespace Display {
 		}
 	}
 
+	string AskSystem(string cmd) {
+		//redirect
+		FILE* log = freopen("ask.out", "w+", stdout);
+		auto arr = errno;
+		//send cmd
+		system(cmd.c_str());
+		//get output size
+		fseek(log, 0, SEEK_END);
+		long pos = ftell(log);
+		fseek(log, 0, SEEK_SET);
+		//create buffer
+		char* buf = new char[pos + 1];
+		buf[pos] = 0;
+		//read
+		auto readed = fread(buf, pos, pos, log);
+		string info = buf;
+
+		fclose(log);
+		//delete[] buf;
+
+		return info;
+	}
+
+	void StartUpdate(Display * disp, uint32_t param) {
+		Screen* scr = new Screen(disp);
+
+		scr->AddLine(new DisplayString(L"Updating..."));
+		scr->AddLine(new DisplayString(L""));
+		scr->AddLine(new DisplayString(L""));
+		scr->AddLine(new DisplayString(L""));
+
+		scr->UpdateDisplay();
+
+		/*const string dev = "/dev/sda1";
+		string ans = AskSystem("ls " + dev);*/
+
+		/*if (ans == (dev+"\n")) {*/
+			scr->SetLine(new DisplayString(L"Reboot"), 1);
+			scr->UpdateDisplay();
+			cout << "start update" << endl;
+			system("systemctl start esmupdate.service");
+		/*}
+		else {
+			scr->SetLine(new DisplayString(L"USB flash not found"), 1);
+			scr->UpdateDisplay();
+			cout << "update failed" << endl;
+			this_thread::sleep_for(std::chrono::seconds(1));
+		}*/
+	}
+
 	void StatusMenu(Display * disp, uint32_t param)
 	{
 		Screen* scr = new Screen(disp);
@@ -305,11 +370,32 @@ namespace Display {
 		wchar_t temp_str[20];
 		float temp = 0;
 		swprintf(temp_str, 20, L"   %2.2f °C", temp);
+
+		auto time = __TIME__;
+		/*wchar_t* wtime = new wchar_t[strlen(time)+1];
+		memset(wtime, 0, strlen(time) + 1);
+		for (int i = 0; i < strlen(time) + 1; i++) wtime[i] = time[i];*/
+
+		auto date = __DATE__;
+		wchar_t* wdate = new wchar_t[strlen(date) + 1];
+		memset(wdate, 0, strlen(date) + 1);
+		for (int i = 0; i < strlen(date) + 1; i++) wdate[i] = date[i];
+		wstring wdatestr = wdate;
+		wdatestr = wdatestr + L" ";
+		delete[] wdate;
+		//time_t time = lts;
+		//auto sysTime = std::chrono::system_clock::from_time_t(time);
+		//auto date = year
+		wchar_t verstr1[20];
+		swprintf(verstr1, 20, L" %1.2f      11:11:11 ", SoftwareVersion);
+		for (int i = 0; i < 8; i++) verstr1[i + 11] = time[i];
+
 		scr->AddLine(new DisplayString(L" Temperature:"));	//freq select
 		scr->AddLine(new DisplayString(temp_str));
-		scr->AddLine(new DisplayString(L" "));
-		scr->AddLine(new DisplayString(L" Temperature 2:"));
-		scr->AddLine(new DisplayString(L""));
+		scr->AddLine(new DisplayString(L" Software version:"));
+		scr->AddLine(new DisplayString(verstr1));
+		scr->AddLine(new DisplayString(wdatestr.c_str(), DisplayString::Alignment::Right));
+		scr->AddLine(new DisplayString(L" Update", StartUpdate));
 		scr->AddLine(new DisplayString(L" Back", [&mode, scr](Display* d, uint32_t p) { scr->ReturnToPrevMenu(d, p); }));	//exit
 		scr->EnableMenu(0, 1);
 
@@ -329,7 +415,6 @@ namespace Display {
 					mode = 0;
 					swprintf(temp_str, 20, L"   %2.2f °C", temp);
 					scr->SetLine(new DisplayString(temp_str), 1);
-					scr->SetLine(new DisplayString(temp_str), 4);
 					//printf("%s: Show temperature\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str());
 					break;
 				}
@@ -347,12 +432,14 @@ namespace Display {
 		system("ifconfig eth0");
 		fseek(log, 0, SEEK_END);
 		long pos = ftell(log);
+		if (pos < 1) return "0.0.0.0";
 		fseek(log, 0, SEEK_SET);
 		char* buf = new char[pos + 1];
 		buf[pos] = 0;
 		auto readed = fread(buf, pos, pos, log);
 		string info = buf;
 		fclose(log);
+		//delete[] buf;
 		auto param_pos = info.find("inet addr:");
 		int len = 0;
 		for (int i = param_pos + 10; i < info.length(); i++) {
@@ -391,7 +478,7 @@ namespace Display {
 			else
 				nums[i] = atoi(IP.c_str() + dotpos[i - 1]);
 		}
-		swprintf(IPstr,16, L" %3d.%3d.%3d.%3d", nums[0], nums[1], nums[2], nums[3]);
+		swprintf(IPstr, 16, L" %3d.%3d.%3d.%3d", nums[0], nums[1], nums[2], nums[3]);
 
 		scr->AddLine(new DisplayString(L"Ethernet settings", DisplayString::Alignment::Center));
 		scr->AddLine(new DisplayString(ModeStr, [&mode, scr](Display* d, uint32_t p) { mode = 2; scr->ReturnToPrevMenu(d, p); }));
@@ -483,11 +570,21 @@ namespace Display {
 		uint8_t mode = 0;	//select
 		wchar_t temp_str[20];
 		wchar_t PWMstr[20];
-		int Step = 0, PrevStep = -1;
+		const uint8_t posInt = 7;
+		const uint8_t posExt = 12;
+		int Step = Stuff::Storage->GetBrightLvl(), PrevStep = -1;
 		int PWMStep = 0, PWMPrevStep = -1;
 
 		wchar_t RefSelectStr[20];
 		swprintf(RefSelectStr, 20, L"  Ref.:>Int  Ext");
+		if (Stuff::Storage->GetRef()) {
+			RefSelectStr[posInt] = '>';
+			RefSelectStr[posExt] = ' ';
+		}
+		else {
+			RefSelectStr[posInt] = ' ';
+			RefSelectStr[posExt] = '>';
+		}
 
 		temp_str[0] = ' ';
 		temp_str[1] = 0x91;
@@ -661,8 +758,6 @@ namespace Display {
 			{
 				bool change = true;
 				size_t size = 0;
-				const uint8_t posInt = 7;
-				const uint8_t posExt = 12;
 				uint8_t pos = RefSelectStr[posInt] == '>' ? posInt : posExt;
 				uint8_t prevpos = pos;
 				disp->SetCursorType(Display::Cursor::NoCursor_NoFlashing);

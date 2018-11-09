@@ -90,6 +90,9 @@
     <ClCompile Include="IPChanger.cpp">
       <Filter>Source\Ethernet</Filter>
     </ClCompile>
+    <ClCompile Include="settings.cpp">
+      <Filter>Source\Stuff</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="threading.h">
@@ -154,6 +157,9 @@
     </ClInclude>
     <ClInclude Include="IPChanger.h">
       <Filter>Headers\Ethernet</Filter>
+    </ClInclude>
+    <ClInclude Include="settings.h">
+      <Filter>Headers\Stuff</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

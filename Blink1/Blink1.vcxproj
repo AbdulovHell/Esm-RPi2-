@@ -64,7 +64,7 @@
     </RemotePostBuildEvent>
     <ClCompile>
       <AdditionalOptions>-lpthread -lz %(AdditionalOptions)</AdditionalOptions>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -79,6 +79,7 @@
     <ClCompile Include="LCD.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Screen.cpp" />
+    <ClCompile Include="settings.cpp" />
     <ClCompile Include="SPI.cpp" />
     <ClCompile Include="stuff.cpp" />
     <ClCompile Include="Task.cpp" />
@@ -99,6 +100,7 @@
     <ClInclude Include="LCD.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Screen.h" />
+    <ClInclude Include="settings.h" />
     <ClInclude Include="Snake.h" />
     <ClInclude Include="SPI.h" />
     <ClInclude Include="stuff.h" />

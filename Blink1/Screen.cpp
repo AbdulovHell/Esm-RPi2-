@@ -112,6 +112,11 @@ int Display::Screen::Count()
 	return (int)LinesCount;
 }
 
+int Display::Screen::TopLineIndex()
+{
+	return TopLine;
+}
+
 size_t Display::Screen::RemoveLine(size_t num)
 {
 	std::list<DisplayString*>::iterator it = Lines->begin();
@@ -135,6 +140,7 @@ void Display::Screen::SetActive()
 	if (!isActive) isActive = true;
 	int size = 0;
 	while (isActive) {
+		this_thread::sleep_for(std::chrono::microseconds(1));
 		size = KeyEvents.size();
 		if (size > 0) {
 			ScreenMutex.lock();
@@ -193,6 +199,7 @@ void Display::Screen::SetActive(std::function<bool(uint32_t)> loop)
 	if (!isActive) isActive = true;
 	int size = 0;
 	while (isActive) {
+		this_thread::sleep_for(std::chrono::microseconds(1));
 		size = KeyEvents.size();
 		if (size > 0) {
 			ScreenMutex.lock();

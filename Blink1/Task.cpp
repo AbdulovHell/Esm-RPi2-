@@ -6,6 +6,7 @@
 #include "I2C.h"
 #include "usart.h"
 #include "wiringPi.h"
+#include "settings.h"
 
 using namespace std;
 
@@ -15,6 +16,74 @@ IO::I2C* b15_30 = nullptr;
 IO::I2C* b_bfg = nullptr;
 IO::I2C* b_bfg23 = nullptr;
 IO::Usart* Elite = nullptr;
+
+float ToFsint(float freq) {
+	if (freq >= 3000.0 && freq < 8000.0) {
+		return freq + 1485.0;
+	}
+	else if (freq >= 8000.0 && freq < 19000.0) {
+		float temp = freq + 5015.0;
+		if (freq >= 15000.0 && freq <= 19000.0)
+			temp /= 2.0;
+		return temp;
+	}
+	else if (freq >= 19000.0 && freq <= 30000.0) {
+		float temp = freq - 5015.0;
+		if (freq >= 25000.0 && freq <= 30000.0)
+			temp /= 2.0;
+		return temp;
+	}
+	else
+		return 3333.0;
+}
+
+int SetEliteFreq(float Freq) {
+	int attempts = 0;
+	//USART
+	if (Elite == nullptr) Elite = new IO::Usart(9600);
+	if (Elite->IsOpen()) {		
+		char buf[32] = { 0, };
+		buf[0] = 'e';
+		buf[1] = 2;	//freq
+		float Fsint = ToFsint(Freq);
+		memcpy(buf + 8, &Fsint, sizeof(Fsint));
+
+		do {
+			Elite->Write(buf, 32);
+
+			//wait answer 500 ms async
+			//or 500 ms sleep 
+
+			this_thread::sleep_for(std::chrono::milliseconds(500));
+			int size = Elite->DataAvail();
+			if (size > 1) {
+				char* rBuf = new char[size];
+				Elite->Read(rBuf, size);
+
+				if (rBuf[0] == 2 && rBuf[1] == 1) {
+					printf("%s: Elite OK freq\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
+					return attempts;
+				}
+				else if (rBuf[0] == 2 && rBuf[1] == 2) {
+					printf("%s: Elite bad freq\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
+				}
+				else {
+					printf("%s: Elite TXRX corrupted\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
+				}
+
+				delete[] rBuf;
+			}
+			else {
+				printf("%s: Elite not respond\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
+			}
+		}while(attempts++<5);
+	}
+	else {
+		printf("%s: Elite not connected! %s\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
+		cout << Elite->GetError() << endl;
+	}
+	return attempts;
+}
 
 void Threading::TaskSetAttCh::Run()
 {
@@ -37,6 +106,7 @@ void Threading::TaskRequestTemp::Run()
 		cout << dev.GetError() << endl;
 	else {
 		short data = dev.Read2BytesFromReg(2);
+		cout << "Raw temp num: " << data << endl;
 		*TempStorage = data / 2.0;
 	}
 }
@@ -66,6 +136,11 @@ void Threading::TaskSetFreq::Run()
 	else if (Freq < 36000) ch = 12;
 	else if (Freq < 40000) ch = 13;
 
+	/*float freqs[] = {3000,6000,8000,9000,10000,12000,16000,18000,19000,20000,22000,24000,25000,26000,27000,29000,30000};
+	float ans[17] = { 0, };
+	for (int i = 0; i < 17; i++) 
+		ans[i] = ToFsint(freqs[i]);*/
+
 	b15_30->WriteReg(ch, 1);
 	b15_30->WriteReg(cmd, 0);
 
@@ -88,47 +163,11 @@ void Threading::TaskSetFreq::Run()
 	b_bfg23->WriteReg(cmd, 0);
 
 	printf("%s: I2C OK freq\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
-	//USART
-	if (Elite == nullptr) Elite = new IO::Usart(9600);
-	if (Elite->IsOpen()) {
-
-		char buf[32] = { 0, };
-		buf[0] = 'e';
-		buf[1] = 2;	//freq
-		memcpy(buf + 8, &Freq, sizeof(Freq));
-		Elite->Write(buf, 32);
-
-		//wait answer 500 ms async
-		//or 50 ms sleep 
-
-		this_thread::sleep_for(std::chrono::milliseconds(500));
-		int size = Elite->DataAvail();
-		if (size > 1) {
-			char* rBuf = new char[size];
-			Elite->Read(rBuf, size);
-
-			if (rBuf[0] == 2 && rBuf[1] == 1) {
-				printf("%s: Elite OK freq\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
-			}
-			else if (rBuf[0] == 2 && rBuf[1] == 2) {
-				printf("%s: Elite bad freq\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
-			}
-			else {
-				printf("%s: Elite TXRX corrupted\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
-			}
-
-			delete[] rBuf;
-		}
-		else {
-			printf("%s: Elite not respond\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
-		}
-	}
-	else {
-		printf("%s: Elite not connected! %s\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
-		cout << Elite->GetError() << endl;
-	}
+	
+	SetEliteFreq(Freq);
 
 	printf("%s: Set channel: %d ; Freq: %d MHz\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str(), ch, Freq);
+	Stuff::Storage->SetFreq(Freq);
 }
 
 void Threading::TaskAdjustBL::Run()
@@ -142,6 +181,7 @@ void Threading::TaskAdjustBL::Run()
 		dev.WriteReg(param, 1);
 		dev.WriteReg((uint8_t)1, 0);
 	}
+	Stuff::Storage->SetBrightLvl(Step);
 }
 
 void Threading::TaskSetPWM::Run()
@@ -167,6 +207,8 @@ void Threading::TaskSetOutput::Run()
 
 	b_bfg23->WriteReg(code, 3);
 	b_bfg23->WriteReg((uint8_t)1, 0);
+
+	Stuff::Storage->SetIF(code);
 }
 
 void Threading::TaskSetAtt::Run()
@@ -191,8 +233,11 @@ void Threading::TaskSetAtt::Run()
 	printf("Set att 3-8: 0x%X\n", temp);
 	b3_8->WriteReg(temp, 2);
 	b3_8->WriteReg(cmd, 0);
+
+	Stuff::Storage->SetAtt(RFatt, IFatt);
 }
 
 void Threading::TaskChangeRef::Run()
 {
+	Stuff::Storage->SetRef(code);
 }

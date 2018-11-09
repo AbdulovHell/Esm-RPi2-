@@ -4,6 +4,7 @@
 #include "LCD.h"
 
 #include "stuff.h"
+#include "settings.h"
 #include "Snake.h"
 #include "Tetris.h"
 
@@ -80,12 +81,12 @@ namespace Games {
 				wchar_t txt[20];
 				swprintf(txt, 20, L"at %d attempt", cnt);
 				scr->SetLine(new Display::DisplayString(txt, Display::DisplayString::Alignment::Center), 2);
-				if (cnt > Stuff::RecordsStorage->GetSelfdestructRecord()) {
-					Stuff::RecordsStorage->SetSelfdestructRecord(cnt);
+				if (cnt > Stuff::Storage->GetSelfdestructRecord()) {
+					Stuff::Storage->SetSelfdestructRecord(cnt);
 					scr->SetLine(new Display::DisplayString(L"New record", Display::DisplayString::Alignment::Center), 3);
 				}
 				else {
-					swprintf(txt, 20, L"Record: %d", Stuff::RecordsStorage->GetSelfdestructRecord());
+					swprintf(txt, 20, L"Record: %d", Stuff::Storage->GetSelfdestructRecord());
 					scr->SetLine(new Display::DisplayString(txt, Display::DisplayString::Alignment::Center), 3);
 				}
 				scr->UpdateDisplay();
@@ -165,8 +166,8 @@ namespace Games {
 			if (start) {
 				bool record = false;
 				int res = SnakeGame(disp, isBordless, speed);
-				if (res > RecordsStorage->GetSnakeRecord()) {
-					RecordsStorage->SetSnakeRecord(res);
+				if (res > Storage->GetSnakeRecord()) {
+					Storage->SetSnakeRecord(res);
 					record = true;
 				}
 
@@ -175,7 +176,7 @@ namespace Games {
 				wchar_t buf[20];
 				swprintf(buf, 20, L"Score: %d", res);
 				resscr.AddLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center));
-				swprintf(buf, 20, L"Record: %d", RecordsStorage->GetSnakeRecord());
+				swprintf(buf, 20, L"Record: %d", Storage->GetSnakeRecord());
 				resscr.AddLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center));
 				if (record) {
 					resscr.AddLine(new Display::DisplayString(L"New record", Display::DisplayString::Alignment::Center));
@@ -440,8 +441,8 @@ namespace Games {
 			if (start) {
 				bool record = false;
 				int res = RacingGame2(disp, speed);
-				if (res > RecordsStorage->GetRacingRecord()) {
-					RecordsStorage->SetRacingRecord(res);
+				if (res > Storage->GetRacingRecord()) {
+					Storage->SetRacingRecord(res);
 					record = true;
 				}
 
@@ -450,7 +451,7 @@ namespace Games {
 				wchar_t buf[20];
 				swprintf(buf, 20, L"Score: %d", res);
 				resscr.AddLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center));
-				swprintf(buf, 20, L"Record: %d", RecordsStorage->GetRacingRecord());
+				swprintf(buf, 20, L"Record: %d", Storage->GetRacingRecord());
 				resscr.AddLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center));
 				if (record) {
 					resscr.AddLine(new Display::DisplayString(L"New record", Display::DisplayString::Alignment::Center));

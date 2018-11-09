@@ -12,6 +12,7 @@
 #include "input.h"
 #include "TCP.h"
 #include "IPChanger.h"
+#include "settings.h"
 //#include "LCD.h"
 // Контакт LED — контакт 0 wiringPi равен BCM_GPIO 17.
 // При инициализации с использованием wiringPiSetupSys нужно применять нумерацию BCM
@@ -24,6 +25,7 @@
 //#define SPI_TEST	//
 
 using namespace Threading;
+using namespace Stuff;
 
 namespace Threading {
 	bool Working = true;
@@ -74,10 +76,12 @@ int main(int argc, char* argv[])
 
 	wiringPiSetupGpio();
 
+	Stuff::Storage = new Stuff::Settings();
+
 	ListenersMutex = new mutex();
 	TasksMutex = new mutex();
 	thrd = new TCPServerThread(port);
-
+	/*
 #ifdef _DEBUG
 	printf("%s: Start...\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
 	for (int i = 1; i < argc; i++) {
@@ -97,7 +101,7 @@ int main(int argc, char* argv[])
 		else if (strcmp(argv[i], "-ch") == 0) {
 			i++;
 			int tempChannel = strtol(argv[i], NULL, 10);
-			if (tempChannel < 1 || tempChannel > 20/*?*/) {
+			if (tempChannel < 1 || tempChannel > 20) {
 				printf("Invalid channel number \"%d\" (1...20), default 6\n", tempChannel);
 			}
 			else {
@@ -107,7 +111,7 @@ int main(int argc, char* argv[])
 		else if (strcmp(argv[i], "-at") == 0) {
 			i++;
 			int tempAtt = strtol(argv[i], NULL, 10);
-			if (tempAtt < 0 || tempAtt > 35/*?*/) {
+			if (tempAtt < 0 || tempAtt > 35) {
 				printf("Invalid attenuation number \"%d\" (0...35), default 0\n", tempAtt);
 			}
 			else {
@@ -117,14 +121,20 @@ int main(int argc, char* argv[])
 	}
 	printf("%s: Initial setup... Channel:%d Att:%d\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str(), channel, att);
 	ciThrd = new ConsoleInputThread();
-#endif
 	MainTasks.push_back(new TaskSetAttCh((uint8_t)att, (uint8_t)channel));
+#endif
+	*/
+	MainTasks.push_back(new TaskSetFreq(Storage->GetFreq()));
+	MainTasks.push_back(new TaskSetAtt(Storage->GetRFAtt(), Storage->GetIFAtt()));
+	MainTasks.push_back(new TaskSetOutput(Storage->GetIF()));
+	MainTasks.push_back(new TaskAdjustBL(Storage->GetBrightLvl()));
+	MainTasks.push_back(new TaskChangeRef(Storage->GetRef()));
 	//system("gpio export 27 output && gpio export 17 output && gpio export 22 output && gpio export 26 output && gpio export 19 output && gpio export 13 output && gpio export 6 output");
 	//device tree enabled
 	//system("gpio load spi");
 	//system("gpio load i2c");
 
-	Stuff::RecordsStorage = new Stuff::Records();
+	
 
 	//Threading::ReadIP();
 
@@ -161,6 +171,7 @@ int main(int argc, char* argv[])
 
 	while (Working)
 	{
+		this_thread::sleep_for(std::chrono::microseconds(1));
 #ifdef SPI_TEST
 		uint8_t buf[2] = { 0x55,0xAA };
 		//for (int i = 0; i < 2; i++)
