@@ -18,19 +18,26 @@ IO::I2C* b_bfg23 = nullptr;
 IO::Usart* Elite = nullptr;
 
 float ToFsint(float freq) {
-	if (freq >= 3000.0 && freq < 8000.0) {
+	if (freq >= 3000.0 && freq < 3515.0) {
+		return (freq + 1485.0)*2.0;
+	}
+	else if (freq>=3515.0 && freq<8000.0) {
 		return freq + 1485.0;
 	}
-	else if (freq >= 8000.0 && freq < 19000.0) {
-		float temp = freq + 5015.0;
-		if (freq >= 15000.0 && freq <= 19000.0)
-			temp /= 2.0;
+	else if (freq >= 8000.0 && freq < 15000.0) {
+		float temp = (freq + 5015.0)/2.0;
 		return temp;
 	}
-	else if (freq >= 19000.0 && freq <= 30000.0) {
-		float temp = freq - 5015.0;
-		if (freq >= 25000.0 && freq <= 30000.0)
-			temp /= 2.0;
+	else if (freq >= 15000.0 && freq < 19000.0) {
+		float temp = (freq + 5015.0)/4.0;
+		return temp;
+	}
+	else if (freq >= 19000.0 && freq < 25015.0) {
+		float temp = (freq - 5015.0) / 2.0;
+		return temp;
+	}
+	else if (freq >= 25015.0 && freq <= 30000.0) {
+		float temp = (freq - 5015.0) / 4.0;
 		return temp;
 	}
 	else
@@ -45,6 +52,7 @@ int SetEliteFreq(float Freq) {
 		char buf[32] = { 0, };
 		buf[0] = 'e';
 		buf[1] = 2;	//freq
+		buf[2] = 1;	//Output 1
 		float Fsint = ToFsint(Freq);
 		memcpy(buf + 8, &Fsint, sizeof(Fsint));
 
@@ -76,7 +84,7 @@ int SetEliteFreq(float Freq) {
 			else {
 				printf("%s: Elite not respond\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
 			}
-		}while(attempts++<5);
+		}while(++attempts<3);
 	}
 	else {
 		printf("%s: Elite not connected! %s\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
@@ -106,7 +114,7 @@ void Threading::TaskRequestTemp::Run()
 		cout << dev.GetError() << endl;
 	else {
 		short data = dev.Read2BytesFromReg(2);
-		cout << "Raw temp num: " << data << endl;
+		//cout << "Raw temp num: " << data << endl;
 		*TempStorage = data / 2.0;
 	}
 }
@@ -136,9 +144,9 @@ void Threading::TaskSetFreq::Run()
 	else if (Freq < 36000) ch = 12;
 	else if (Freq < 40000) ch = 13;
 
-	/*float freqs[] = {3000,6000,8000,9000,10000,12000,16000,18000,19000,20000,22000,24000,25000,26000,27000,29000,30000};
-	float ans[17] = { 0, };
-	for (int i = 0; i < 17; i++) 
+	/*float freqs[] = {3000,6000,8000,9000,10000,12000,15000,16000,18000,19000,20000,22000,24000,25000,26000,27000,29000,30000};
+	float ans[18] = { 0, };
+	for (int i = 0; i < 18; i++) 
 		ans[i] = ToFsint(freqs[i]);*/
 
 	b15_30->WriteReg(ch, 1);
@@ -177,7 +185,7 @@ void Threading::TaskAdjustBL::Run()
 		cout << dev.GetError() << endl;
 	else {
 		uint8_t param = (127 + Step * 8);
-		printf("New value: %d\n", param);
+		printf("New BL value: %d\n", param);
 		dev.WriteReg(param, 1);
 		dev.WriteReg((uint8_t)1, 0);
 	}
@@ -239,5 +247,45 @@ void Threading::TaskSetAtt::Run()
 
 void Threading::TaskChangeRef::Run()
 {
+	int attempts = 0;
+	//USART
+	if (Elite == nullptr) Elite = new IO::Usart(9600);
+	if (Elite->IsOpen()) {
+		char buf[32] = { 0, };
+		buf[0] = 'e';
+		buf[1] = 3;	//Ref
+		buf[2] = code;
+
+		do {
+			Elite->Write(buf, 32);
+
+			//wait answer 500 ms async
+			//or 500 ms sleep 
+
+			this_thread::sleep_for(std::chrono::milliseconds(200));
+			int size = Elite->DataAvail();
+			if (size > 1) {
+				char* rBuf = new char[size];
+				Elite->Read(rBuf, size);
+
+				if (rBuf[0] == 3 && rBuf[1] == 1) {
+					printf("%s: Elite OK change ref to %s\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str(),(code)?"Ext":"Int");
+				}
+				else {
+					printf("%s: Elite TXRX corrupted\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
+				}
+
+				delete[] rBuf;
+			}
+			else {
+				printf("%s: Elite not respond\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
+			}
+		} while (++attempts<3);
+	}
+	else {
+		printf("%s: Elite not connected! %s\n", Stuff::MakeColor("MAIN", Stuff::Green).c_str());
+		cout << Elite->GetError() << endl;
+	}
+
 	Stuff::Storage->SetRef(code);
 }

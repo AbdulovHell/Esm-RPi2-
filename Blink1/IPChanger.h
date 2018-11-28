@@ -7,8 +7,29 @@
 using namespace std;
 
 namespace Threading {
-	void SetIP(wstring ip);
-	void ReadIP();
+
+	class IPChanger {
+		bool usingDHCP = false;
+		string CurrentIP = "";
+
+		string GetCurrentIP();
+
+		void ReadIPConf();
+
+		string RouterIP(string ip);
+
+	public:
+		IPChanger();
+
+		void Save();
+
+		string GetIP() { return CurrentIP; }
+		bool UsingDHCP() { return usingDHCP; }
+
+		void SetIP(string ip) { CurrentIP = ip; }
+		void SetIP(int nums[]);
+		void SetDHCPState(bool state) { usingDHCP = state; }
+	};
 }
 
 #endif

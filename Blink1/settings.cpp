@@ -1,5 +1,7 @@
 #include "settings.h"
 #include <iostream>
+#include <sys/stat.h>
+#include "syslogs.h"
 
 namespace Stuff {
 	Settings* Storage;
@@ -7,41 +9,77 @@ namespace Stuff {
 
 using namespace std;
 const string SettingsPath = "/esm/settings.bin";
+std::mutex* SettingsMutex;
 
 void Stuff::Settings::UpdateFile()
 {
+	SettingsMutex->lock();
+	Threading::SALog.Append("Update file");
 	ofstream fs(SettingsPath, ios::out | ios::trunc | ios::binary);
-	cout << "Settings file updated" << endl;
+	//cout << "Settings file updated" << endl;
 	fs.write((char*)&dt, sizeof(Data));
+	fs.flush();
 	fs.close();
+	SettingsMutex->unlock();
+}
+
+void Stuff::Settings::CreateNew()
+{
+	dt.Freq = 3000;
+	dt.RFatt = 0;
+	dt.IFatt = 0;
+	dt.IF = 1;
+	dt.BrightLvl = 16;
+	dt.Ref = 1;
+	dt.WorkTime_m = 0;
+
+	dt.SnakeRecord = 0;
+	dt.SelfdestructRecord = 0;
+	dt.RacingRecord = 0;
+	dt.TetrisRecord = 0;
+	Threading::SALog.Append("Set default params");
+	UpdateFile();
 }
 
 Stuff::Settings::Settings()
 {
+	SettingsMutex = new std::mutex();
+}
+
+string ToString(uint32_t num) {
+	string ret = "";
+	char buf[100];
+	sprintf(buf, "%u", num);
+	ret = buf;
+	return ret;
+}
+
+void Stuff::Settings::LoadSettings()
+{
+	int filesize = -1;
 	//попытка загрузки из файла
 	ifstream ifs(SettingsPath, ios::in | ios::binary);
 	//если файла нет, то установка по умолчанию
 	if (!ifs) {
-		dt.Freq = 3000;
-		dt.RFatt = 0;
-		dt.IFatt = 0;
-		dt.IF = 1;
-		dt.BrightLvl = 16;
-		dt.Ref = 1;
-
-		dt.SnakeRecord = 0;
-		dt.SelfdestructRecord = 0;
-		dt.RacingRecord = 0;
-		dt.TetrisRecord = 0;
-		cout << "Create new settings file" << endl;
-		UpdateFile();
-		return;
+		Threading::SALog.Append("Create new, not exist. err:" + ToString(errno));
+		CreateNew();
 	}
+	else {//иначе парсим файлик
+		struct stat fi;
+		stat(SettingsPath.c_str(), &fi);
+		filesize = fi.st_size;
 
-	//иначе парсим файлик
-	ifs.read((char*)&dt, sizeof(Data));
-	cout << "Settings file readed" << endl;
-	ifs.close();
+		if (filesize > 0) {
+			ifs.read((char*)&dt, sizeof(Data));
+			ifs.close();
+			Threading::SALog.Append("Readed, F:" + ToString(dt.Freq));
+		}
+		else {
+			ifs.close();
+			Threading::SALog.Append("Create new, filesize 0. err:" + ToString(errno));
+			CreateNew();
+		}
+	}
 }
 
 void Stuff::Settings::SetSnakeRecord(int rec)
@@ -147,4 +185,15 @@ void Stuff::Settings::SetRef(uint8_t ref)
 uint8_t Stuff::Settings::GetRef()
 {
 	return dt.Ref;
+}
+
+void Stuff::Settings::SetWorkTime(uint64_t t)
+{
+	dt.WorkTime_m = t;
+	UpdateFile();
+}
+
+uint64_t Stuff::Settings::GetWorkTime()
+{
+	return dt.WorkTime_m;
 }

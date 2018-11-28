@@ -93,6 +93,9 @@
     <ClCompile Include="settings.cpp">
       <Filter>Source\Stuff</Filter>
     </ClCompile>
+    <ClCompile Include="syslogs.cpp">
+      <Filter>Source\Stuff</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="threading.h">
@@ -159,6 +162,9 @@
       <Filter>Headers\Ethernet</Filter>
     </ClInclude>
     <ClInclude Include="settings.h">
+      <Filter>Headers\Stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="syslogs.h">
       <Filter>Headers\Stuff</Filter>
     </ClInclude>
   </ItemGroup>

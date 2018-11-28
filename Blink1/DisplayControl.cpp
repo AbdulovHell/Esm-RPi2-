@@ -7,13 +7,15 @@
 #include "main.h"
 #include "Task.h"
 #include "settings.h"
+#include "IPChanger.h"
+#include <inttypes.h>
 
 namespace Display {
 	using namespace std;
 
 	mutex ScreenMutex;
 	vector<KeyEvent*> KeyEvents;
-	const float SoftwareVersion = 1.22;
+	const float SoftwareVersion = 1.54;
 
 	template <typename T> T Pow(T base, int n) {
 		if (n == 0) return (T)1;
@@ -157,7 +159,7 @@ namespace Display {
 							{
 								int mult = 10 - pos;
 								RFinAtt -= Pow(10, mult);
-								if (std::abs(RFinAtt-PrevAtt) > 30) RFinAtt = 0;
+								if (std::abs(RFinAtt - PrevAtt) > 30) RFinAtt = 0;
 							}
 							break;
 						case EventCode::LeftKeyPress:
@@ -350,10 +352,10 @@ namespace Display {
 		string ans = AskSystem("ls " + dev);*/
 
 		/*if (ans == (dev+"\n")) {*/
-			scr->SetLine(new DisplayString(L"Reboot"), 1);
-			scr->UpdateDisplay();
-			cout << "start update" << endl;
-			system("systemctl start esmupdate.service");
+		scr->SetLine(new DisplayString(L"Reboot"), 1);
+		scr->UpdateDisplay();
+		cout << "start update" << endl;
+		system("systemctl start esmupdate.service");
 		/*}
 		else {
 			scr->SetLine(new DisplayString(L"USB flash not found"), 1);
@@ -371,15 +373,15 @@ namespace Display {
 		float temp = 0;
 		swprintf(temp_str, 20, L"   %2.2f °C", temp);
 
-		auto time = __TIME__;
+		auto sTime = __TIME__;
 		/*wchar_t* wtime = new wchar_t[strlen(time)+1];
 		memset(wtime, 0, strlen(time) + 1);
 		for (int i = 0; i < strlen(time) + 1; i++) wtime[i] = time[i];*/
 
-		auto date = __DATE__;
-		wchar_t* wdate = new wchar_t[strlen(date) + 1];
-		memset(wdate, 0, strlen(date) + 1);
-		for (int i = 0; i < strlen(date) + 1; i++) wdate[i] = date[i];
+		auto sDate = __DATE__;
+		wchar_t* wdate = new wchar_t[strlen(sDate) + 1];
+		memset(wdate, 0, strlen(sDate) + 1);
+		for (int i = 0; i < strlen(sDate) + 1; i++) wdate[i] = sDate[i];
 		wstring wdatestr = wdate;
 		wdatestr = wdatestr + L" ";
 		delete[] wdate;
@@ -388,10 +390,15 @@ namespace Display {
 		//auto date = year
 		wchar_t verstr1[20];
 		swprintf(verstr1, 20, L" %1.2f      11:11:11 ", SoftwareVersion);
-		for (int i = 0; i < 8; i++) verstr1[i + 11] = time[i];
+		for (int i = 0; i < 8; i++) verstr1[i + 11] = sTime[i];
+
+		wchar_t uptimestr[20];
+		wchar_t uptime_template[] = L" Uptime: %8llu h";
+		swprintf(uptimestr, 20, uptime_template, Stuff::Storage->GetWorkTime());
 
 		scr->AddLine(new DisplayString(L" Temperature:"));	//freq select
 		scr->AddLine(new DisplayString(temp_str));
+		scr->AddLine(new DisplayString(uptimestr));
 		scr->AddLine(new DisplayString(L" Software version:"));
 		scr->AddLine(new DisplayString(verstr1));
 		scr->AddLine(new DisplayString(wdatestr.c_str(), DisplayString::Alignment::Right));
@@ -399,71 +406,44 @@ namespace Display {
 		scr->AddLine(new DisplayString(L" Back", [&mode, scr](Display* d, uint32_t p) { scr->ReturnToPrevMenu(d, p); }));	//exit
 		scr->EnableMenu(0, 1);
 
-		//bool work = true;
-		//while (work) {
-		int cnt = 0;
-		scr->SetActive([&cnt, scr, &mode, &temp](uint32_t param) {
-			if (cnt++ % 7500000 == 0) {
+		scr->SetActive([&uptime_template, scr](uint32_t param) {
+			if (Threading::UpdateNow) {
+				Threading::UpdateNow = false;
+				wchar_t uptimestr[20];
+				swprintf(uptimestr, 20, uptime_template, Stuff::Storage->GetWorkTime() / 3600);
+				scr->SetLine(new DisplayString(uptimestr), 2);
+
 				wchar_t temp_str[20];
-				switch (mode) {
-				case 0:
-					mode = 1;	//запрос
-					Threading::AddTask(new Threading::TaskRequestTemp(&temp));
-					//printf("%s: Read temperature\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str());
-					break;
-				case 1:
-					mode = 0;
-					swprintf(temp_str, 20, L"   %2.2f °C", temp);
-					scr->SetLine(new DisplayString(temp_str), 1);
-					//printf("%s: Show temperature\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str());
-					break;
-				}
+				swprintf(temp_str, 20, L"   %2.2f °C", Threading::Temperature);
+				scr->SetLine(new DisplayString(temp_str), 1);
 				return true;
 			}
 			else
 				return false;
 		});
-		//}
-	}
-
-	string GetCurrentIP() {
-		FILE* log = freopen("ifconfig_log.out", "w+", stdout);
-
-		system("ifconfig eth0");
-		fseek(log, 0, SEEK_END);
-		long pos = ftell(log);
-		if (pos < 1) return "0.0.0.0";
-		fseek(log, 0, SEEK_SET);
-		char* buf = new char[pos + 1];
-		buf[pos] = 0;
-		auto readed = fread(buf, pos, pos, log);
-		string info = buf;
-		fclose(log);
-		//delete[] buf;
-		auto param_pos = info.find("inet addr:");
-		int len = 0;
-		for (int i = param_pos + 10; i < info.length(); i++) {
-			if (info[i] == ' ') {
-				len = i - param_pos - 10;
-				break;
-			}
-		}
-
-		string ip_str = info.substr(param_pos + 10, len);
-
-		//cout << "IP: " << ip_str << endl;
-
-		return ip_str.c_str();
 	}
 
 	void EthernetSettings(Display * disp, uint32_t param)
 	{
 		Screen* scr = new Screen(disp);
 		uint8_t mode = 0;	//select
-		bool useDHCP = false;
-		string IP = GetCurrentIP();
+
+		Threading::IPChanger ipchanger;
+		string IP = ipchanger.GetIP();
+
 		wchar_t ModeStr[] = L" >Static  Dynamic";
-		wchar_t IPstr[16] = { 0, };
+		const uint8_t posStatic = 1;
+		const uint8_t posDynamic = 9;
+		if (!ipchanger.UsingDHCP()) {
+			ModeStr[posStatic] = '>';
+			ModeStr[posDynamic] = ' ';
+		}
+		else {
+			ModeStr[posStatic] = ' ';
+			ModeStr[posDynamic] = '>';
+		}
+
+		wchar_t IPstr[20] = { 0, };
 		int dotpos[3] = { 0, };
 		int dotcnt = 0;
 		for (int i = 0; i < IP.length(); i++) {
@@ -478,7 +458,8 @@ namespace Display {
 			else
 				nums[i] = atoi(IP.c_str() + dotpos[i - 1]);
 		}
-		swprintf(IPstr, 16, L" %3d.%3d.%3d.%3d", nums[0], nums[1], nums[2], nums[3]);
+		swprintf(IPstr, 20, L" %3d.%3d.%3d.%3d", nums[0], nums[1], nums[2], nums[3]);
+		int Lastnums[4] = { nums[0],nums[1],nums[2],nums[3] };
 
 		scr->AddLine(new DisplayString(L"Ethernet settings", DisplayString::Alignment::Center));
 		scr->AddLine(new DisplayString(ModeStr, [&mode, scr](Display* d, uint32_t p) { mode = 2; scr->ReturnToPrevMenu(d, p); }));
@@ -493,15 +474,13 @@ namespace Display {
 
 			switch (mode) {
 			case 1:
-
+				ipchanger.Save();
 				system("sudo reboot");
 				break;
 			case 2:
 			{
 				bool change = true;
 				size_t size = 0;
-				const uint8_t posStatic = 1;
-				const uint8_t posDynamic = 9;
 				uint8_t pos = ModeStr[posStatic] == '>' ? posStatic : posDynamic;
 				uint8_t prevpos = pos;
 				disp->SetCursorType(Display::Cursor::NoCursor_NoFlashing);
@@ -536,7 +515,7 @@ namespace Display {
 						if (prevpos != pos) {	//произошло изменение
 							prevpos = pos;
 							printf("%s: IP work mode set to %s\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), pos == posStatic ? "Static" : "Dynamic");
-							useDHCP = (pos == posDynamic);
+							ipchanger.SetDHCPState(pos == posDynamic);
 							if (pos == posStatic) {
 								ModeStr[posStatic] = '>';
 								ModeStr[posDynamic] = ' ';
@@ -555,7 +534,82 @@ namespace Display {
 			break;
 			case 3:
 			{
+				const int CursorPos = 3;	//Line index
+				const int LoPos[4] = { 4,8,12, 16 };
+				const int HiPos[4] = { 2,6,10, 14 };
+				int Num = 0;
+				bool change = true;
+				size_t size = 0;
+				uint8_t pos = LoPos[Num];
+				disp->SetCursorPos(CursorPos - scr->TopLineIndex(), pos);
 
+				while (change) {
+					size = KeyEvents.size();
+					if (size > 0) {
+						ScreenMutex.lock();
+						switch (KeyEvents[0]->eCode) {
+						case EventCode::UpKeyPress:
+							scr->DispatchMessage();
+							{
+								int mult = LoPos[Num] - pos;
+								nums[Num] += Pow(10, mult);
+								if (nums[Num] > 255) nums[Num] = 255;
+							}
+							break;
+						case EventCode::DownKeyPress:
+							scr->DispatchMessage();
+							{
+								int mult = LoPos[Num] - pos;
+								nums[Num] -= Pow(10, mult);
+								if (nums[Num] < 0) nums[Num] = 0;
+							}
+							break;
+						case EventCode::LeftKeyPress:
+							scr->DispatchMessage();
+							pos--;
+							if (pos < HiPos[Num]) {
+								Num--;
+								if (Num < 0) {
+									Num = 0;
+									pos = HiPos[Num];
+								}
+								else {
+									pos = LoPos[Num];
+								}
+							}
+							break;
+						case EventCode::RightKeyPress:
+							scr->DispatchMessage();
+							pos++;
+							if (pos > LoPos[Num]) {
+								Num++;
+								if (Num > 3) {
+									Num = 3;
+									pos = LoPos[Num];
+								}
+								else {
+									pos = HiPos[Num];
+								}
+							}
+							break;
+						case EventCode::MidKeyPress:
+							scr->DispatchMessage();
+							change = false;
+							break;
+						default:
+							scr->DispatchMessage();
+							break;
+						}
+						if (Lastnums[Num] != nums[Num]) {	//произошло изменение
+							Lastnums[Num] = nums[Num];
+							swprintf(IPstr, 20, L" %3d.%3d.%3d.%3d", nums[0], nums[1], nums[2], nums[3]);
+							scr->SetLine(new DisplayString(IPstr), 2);
+							ipchanger.SetIP(nums);
+						}
+						scr->UpdateDisplay();
+						disp->SetCursorPos(CursorPos - scr->TopLineIndex(), pos);
+					}
+				}
 			}
 			break;
 			case 0:

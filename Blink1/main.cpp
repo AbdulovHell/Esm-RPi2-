@@ -13,6 +13,7 @@
 #include "TCP.h"
 #include "IPChanger.h"
 #include "settings.h"
+#include "syslogs.h"
 //#include "LCD.h"
 // Контакт LED — контакт 0 wiringPi равен BCM_GPIO 17.
 // При инициализации с использованием wiringPiSetupSys нужно применять нумерацию BCM
@@ -32,10 +33,10 @@ namespace Threading {
 	TCPServerThread* thrd;
 	LCDControlThread* lcdThrd;
 	ButtonsInputThread* biThrd;
+	TimingThread* timingThrd;
 	vector<Threading::Task*> MainTasks;
 	std::mutex* TasksMutex;
-
-
+	
 
 #ifdef _DEBUG
 	ConsoleInputThread* ciThrd;
@@ -51,6 +52,7 @@ namespace Threading {
 
 void InitShutdown() {
 	Working = false;
+	timingThrd->~TimingThread();
 #ifdef _DEBUG
 	ciThrd->~ConsoleInputThread();
 #endif
@@ -76,8 +78,11 @@ int main(int argc, char* argv[])
 
 	wiringPiSetupGpio();
 
+	SALog.Append("Open settings");
 	Stuff::Storage = new Stuff::Settings();
-
+	SALog.Append("Load settings");
+	Stuff::Storage->LoadSettings();
+	SALog.Append("Load done");
 	ListenersMutex = new mutex();
 	TasksMutex = new mutex();
 	thrd = new TCPServerThread(port);
@@ -124,6 +129,7 @@ int main(int argc, char* argv[])
 	MainTasks.push_back(new TaskSetAttCh((uint8_t)att, (uint8_t)channel));
 #endif
 	*/
+	SALog.Append("Set params");
 	MainTasks.push_back(new TaskSetFreq(Storage->GetFreq()));
 	MainTasks.push_back(new TaskSetAtt(Storage->GetRFAtt(), Storage->GetIFAtt()));
 	MainTasks.push_back(new TaskSetOutput(Storage->GetIF()));
@@ -137,10 +143,11 @@ int main(int argc, char* argv[])
 	
 
 	//Threading::ReadIP();
-
+	SALog.Append("Start thrds");
 	lcdThrd = new LCDControlThread();
 	biThrd = new ButtonsInputThread();
-
+	timingThrd = new TimingThread();
+	SALog.Append("Threads started");
 #ifdef UART_TEST
 	IO::Usart dev(9600);
 	if (!dev.IsOpen())

@@ -6,6 +6,7 @@
 #include "main.h"
 #include "Task.h"
 #include "I2C.h"
+#include "settings.h"
 
 namespace Threading {
 	std::vector<Threading::TCPReciverThread*> Listeners;
@@ -68,48 +69,79 @@ namespace Threading {
 			//проверка
 			//if (!Stuff::Verify(buf)) break;
 			//обработка
-			switch (buf[0]) {	//type id
-			case 1:
-			{
-				sprintf(buf, "Connected\n");
-				send(reciver, buf, 128, 0);
+			if (buf[0] < 0x20) {
+				if (buf[1] == READ) {
+					TRData dt;
+					memset(&dt, 0, sizeof(TRData));
+
+					dt.Freq = Stuff::Storage->GetFreq();
+					dt.IF = Stuff::Storage->GetIF();
+					dt.IFatt = Stuff::Storage->GetIFAtt();
+					dt.RFatt = Stuff::Storage->GetRFAtt();
+					dt.Ref = Stuff::Storage->GetRef();
+
+					memcpy(buf + 2, &dt, sizeof(TRData));
+					send(reciver, buf, 128, 0);
+					printf("%s(%d): Send TRData\n", Stuff::MakeColor("RECV", Stuff::Yellow).c_str(), reciver);
+				}
+				else if (buf[1] == WRITE) {
+					TRData dt;
+					memcpy(&dt, buf + 2, sizeof(TRData));
+				
+					if (buf[0] & FREQ) Threading::AddTask(new Threading::TaskSetFreq(dt.Freq));
+					if (buf[0] & RFATT || buf[0] & IFATT) Threading::AddTask(new Threading::TaskSetAtt(dt.RFatt, dt.IFatt));
+					if (buf[0] & _IF) Threading::AddTask(new Threading::TaskSetOutput(dt.IF));
+					if (buf[0] & REF) Threading::AddTask(new Threading::TaskChangeRef(dt.Ref));
+
+					sprintf(buf + 1, "Ok. F:%d RFatt:%d IFAtt:%d %s\n", dt.Freq, dt.RFatt, dt.IFatt, dt.IF ? "1485" : "140");
+					buf[0] = RESERVED;
+					send(reciver, buf, 128, 0);
+
+					printf("%s(%d): TRData accepted\n", Stuff::MakeColor("RECV", Stuff::Yellow).c_str(), reciver);
+				}
 			}
-			break;
-			case 2:
-			{
-				printf("%s(%d): Place task -> Set ch %d att %d\n", Stuff::MakeColor("RECV", Stuff::Yellow).c_str(), reciver, buf[4], buf[5]);
-				TasksMutex->lock();
-				MainTasks.push_back(new TaskSetAttCh(buf[5], buf[4]));
-				TasksMutex->unlock();
-			}
-			break;
-			case 11:
-			{
-				IO::I2C dev(buf[1]);
-				if (dev.IsOpen()) {
-					for (int i = 0; i < 16; i++) {
-						buf[i + 2] = dev.ReadByteFromReg(i + 8);
+			else
+				switch (buf[0]) {	//type id			
+				case DEBUG_ATT:	//debug att
+				{
+					if (buf[1] == READ) {
+						IO::I2C dev(0x24);	//b3-8
+						if (dev.IsOpen()) {
+							for (int i = 0; i < 16; i++) {
+								buf[i + 2] = dev.ReadByteFromReg(i + 8);
+							}
+						}
+						send(reciver, buf, 128, 0);
+					}
+					else if (buf[1] == WRITE) {
+						IO::I2C dev(0x24);//b3-8
+						if (dev.IsOpen()) {
+							for (int i = 0; i < 16; i++) {
+								dev.WriteReg((uint8_t)buf[i + 2], i + 8);
+							}
+							dev.WriteReg((uint8_t)2, 0); //команда на обновление eeprom
+						}
+						sprintf(buf + 1, "Debug att written to b3-8\n");
+						buf[0] = RESERVED;
+						send(reciver, buf, 128, 0);
 					}
 				}
-				send(reciver, buf, 128, 0);
-			}
-			break;
-			case 12:
-			{
-				IO::I2C dev(buf[1]);
-				if (dev.IsOpen()) {
-					for (int i = 0; i < 16; i++) {
-						dev.WriteReg((uint8_t)buf[i + 2], i + 8);
-					}
-					dev.WriteReg((uint8_t)2, 0); //команда на обновление eeprom
-				}
-				sprintf(buf, "Debug att written to block %d.\n", buf[1]);
-				send(reciver, buf, 128, 0);
-			}
-			break;
-			default:
 				break;
-			}
+				case RESERVED:
+				{
+
+				}
+				break;
+				case TEST_CONN:
+				{
+					sprintf(buf + 1, "Connected\n");
+					buf[0] = RESERVED;
+					send(reciver, buf, 128, 0);
+				}
+				break;
+				default:
+					break;
+				}
 		}
 		printf("%s(%d): Stop working\n", Stuff::MakeColor("RECV", Stuff::Yellow).c_str(), reciver);
 		*stopflag = true;

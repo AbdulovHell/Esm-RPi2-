@@ -244,7 +244,7 @@ void Display::Screen::SetActive(std::function<bool(uint32_t)> loop)
 			}
 			needUpdate = true;
 		}
-		needUpdate=loop(NULL);
+		needUpdate=loop(0);
 		if (needUpdate) {
 			needUpdate = false;
 			UpdateDisplay();
