@@ -15,7 +15,7 @@ namespace Display {
 
 	mutex ScreenMutex;
 	vector<KeyEvent*> KeyEvents;
-	const float SoftwareVersion = 1.54;
+	const float SoftwareVersion = 1.57;
 
 	template <typename T> T Pow(T base, int n) {
 		if (n == 0) return (T)1;
@@ -151,7 +151,7 @@ namespace Display {
 							{
 								int mult = 10 - pos;
 								RFinAtt += Pow(10, mult);
-								if (RFinAtt > 25) RFinAtt = 25;
+								if (RFinAtt > 15) RFinAtt = 15;
 							}
 							break;
 						case EventCode::DownKeyPress:
@@ -317,10 +317,10 @@ namespace Display {
 
 	string AskSystem(string cmd) {
 		//redirect
-		FILE* log = freopen("ask.out", "w+", stdout);
-		auto arr = errno;
-		//send cmd
+		cmd += " > as.txt";
 		system(cmd.c_str());
+		//open
+		FILE* log = fopen("as.txt", "r");
 		//get output size
 		fseek(log, 0, SEEK_END);
 		long pos = ftell(log);
@@ -333,8 +333,8 @@ namespace Display {
 		string info = buf;
 
 		fclose(log);
-		//delete[] buf;
-
+		delete[] buf;
+		system("rm as.txt");
 		return info;
 	}
 
@@ -348,21 +348,21 @@ namespace Display {
 
 		scr->UpdateDisplay();
 
-		/*const string dev = "/dev/sda1";
-		string ans = AskSystem("ls " + dev);*/
+		const string dev = "/dev/sda1";
+		string ans = AskSystem("ls " + dev);
 
-		/*if (ans == (dev+"\n")) {*/
-		scr->SetLine(new DisplayString(L"Reboot"), 1);
-		scr->UpdateDisplay();
-		cout << "start update" << endl;
-		system("systemctl start esmupdate.service");
-		/*}
+		if (ans == (dev + "\n")) {
+			scr->SetLine(new DisplayString(L"Reboot"), 1);
+			scr->UpdateDisplay();
+			cout << "start update" << endl;
+			system("systemctl start esmupdate.service");
+		}
 		else {
 			scr->SetLine(new DisplayString(L"USB flash not found"), 1);
 			scr->UpdateDisplay();
 			cout << "update failed" << endl;
 			this_thread::sleep_for(std::chrono::seconds(1));
-		}*/
+		}
 	}
 
 	void StatusMenu(Display * disp, uint32_t param)

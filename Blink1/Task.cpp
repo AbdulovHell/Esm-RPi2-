@@ -52,7 +52,14 @@ int SetEliteFreq(float Freq) {
 		char buf[32] = { 0, };
 		buf[0] = 'e';
 		buf[1] = 2;	//freq
-		buf[2] = 1;	//Output 1
+
+		if (3000.0 >= Freq && Freq < 8000.0)
+			buf[2] = 1;	//Output 1
+		else if (8000.0 >= Freq && Freq < 30000.0)
+			buf[2] = 2;	//Output 2
+		else
+			buf[2] = 3;	//Output 3
+
 		float Fsint = ToFsint(Freq);
 		memcpy(buf + 8, &Fsint, sizeof(Fsint));
 
