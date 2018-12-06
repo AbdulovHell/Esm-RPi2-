@@ -113,6 +113,7 @@ namespace Games {
 
 		virtual bool Rotate(unsigned char** image, int pos) = 0;
 		virtual int InitPos() = 0;
+		virtual void GetPreview(unsigned char** image) = 0;
 
 		bool TurnLeft(unsigned char** image, int pos) {
 			if (Turn(image, pos, -1)) {
@@ -141,6 +142,20 @@ namespace Games {
 			Center.second = 4;
 		}
 
+		void GetPreview(unsigned char** image) {
+			if (image == nullptr) return;
+			const uint8_t SPACE = 0x20;
+			const uint8_t BLOCK = 0xA0;
+			//4x2
+			for (int i = 0; i < 2; i++)
+				memset(image[i], SPACE, 4);
+
+			image[0][1] = BLOCK;
+			image[0][2] = BLOCK;
+			image[1][1] = BLOCK;
+			image[1][2] = BLOCK;
+		}
+
 		bool Rotate(unsigned char** image, int pos) {
 			return false;
 		}
@@ -159,6 +174,20 @@ namespace Games {
 			Center.second = 4;
 		}
 
+		void GetPreview(unsigned char** image) {
+			if (image == nullptr) return;
+			const uint8_t SPACE = 0x20;
+			const uint8_t BLOCK = 0xA0;
+			//4x2
+			for (int i = 0; i < 2; i++)
+				memset(image[i], SPACE, 4);
+
+			image[1][1] = BLOCK;
+			//image[0][2] = BLOCK;
+			//image[1][1] = BLOCK;
+			//image[1][2] = BLOCK;
+		}
+
 		bool Rotate(unsigned char** image, int pos) {
 			return false;
 		}
@@ -175,6 +204,20 @@ namespace Games {
 			FigureSpace[1][3] = ACTIONFIGURE; FigureSpace[1][4] = ACTIONFIGURE; FigureSpace[1][5] = ACTIONFIGURE;
 			Center.first = 1;
 			Center.second = 4;
+		}
+
+		void GetPreview(unsigned char** image) {
+			if (image == nullptr) return;
+			const uint8_t SPACE = 0x20;
+			const uint8_t BLOCK = 0xA0;
+			//4x2
+			for (int i = 0; i < 2; i++)
+				memset(image[i], SPACE, 4);
+
+			image[0][1] = BLOCK;
+			image[1][0] = BLOCK;
+			image[1][1] = BLOCK;
+			image[1][2] = BLOCK;
 		}
 
 		bool Rotate(unsigned char** image, int pos) {
@@ -229,6 +272,20 @@ namespace Games {
 			Center.second = 4;
 		}
 
+		void GetPreview(unsigned char** image) {
+			if (image == nullptr) return;
+			const uint8_t SPACE = 0x20;
+			const uint8_t BLOCK = 0xA0;
+			//4x2
+			for (int i = 0; i < 2; i++)
+				memset(image[i], SPACE, 4);
+
+			image[1][0] = BLOCK;
+			image[1][1] = BLOCK;
+			image[1][2] = BLOCK;
+			image[1][3] = BLOCK;
+		}
+
 		bool Rotate(unsigned char** image, int pos) {
 			unsigned char** tempBuf = Copy();
 			bool Rotated = false;
@@ -276,6 +333,20 @@ namespace Games {
 			FigureSpace[2][4] = ACTIONFIGURE;
 			Center.first = 1;
 			Center.second = 4;
+		}
+
+		void GetPreview(unsigned char** image) {
+			if (image == nullptr) return;
+			const uint8_t SPACE = 0x20;
+			const uint8_t BLOCK = 0xA0;
+			//4x2
+			for (int i = 0; i < 2; i++)
+				memset(image[i], SPACE, 4);
+
+			image[0][0] = BLOCK;
+			image[0][1] = BLOCK;
+			image[0][2] = BLOCK;
+			image[1][0] = BLOCK;
 		}
 
 		bool Rotate(unsigned char** image, int pos) {
@@ -346,6 +417,20 @@ namespace Games {
 			Center.second = 4;
 		}
 
+		void GetPreview(unsigned char** image) {
+			if (image == nullptr) return;
+			const uint8_t SPACE = 0x20;
+			const uint8_t BLOCK = 0xA0;
+			//4x2
+			for (int i = 0; i < 2; i++)
+				memset(image[i], SPACE, 4);
+
+			image[1][0] = BLOCK;
+			image[1][1] = BLOCK;
+			image[1][2] = BLOCK;
+			image[0][0] = BLOCK;
+		}
+
 		bool Rotate(unsigned char** image, int pos) {
 			unsigned char** tempBuf = Copy();
 			bool Rotated = false;
@@ -413,6 +498,20 @@ namespace Games {
 			Center.second = 4;
 		}
 
+		void GetPreview(unsigned char** image) {
+			if (image == nullptr) return;
+			const uint8_t SPACE = 0x20;
+			const uint8_t BLOCK = 0xA0;
+			//4x2
+			for (int i = 0; i < 2; i++)
+				memset(image[i], SPACE, 4);
+
+			image[0][0] = BLOCK;
+			image[0][1] = BLOCK;
+			image[1][1] = BLOCK;
+			image[1][2] = BLOCK;
+		}
+
 		bool Rotate(unsigned char** image, int pos) {
 			unsigned char** tempBuf = Copy();
 			bool Rotated = false;
@@ -463,6 +562,20 @@ namespace Games {
 			FigureSpace[1][3] = ACTIONFIGURE;	FigureSpace[1][4] = ACTIONFIGURE;
 			Center.first = 1;
 			Center.second = 4;
+		}
+
+		void GetPreview(unsigned char** image) {
+			if (image == nullptr) return;
+			const uint8_t SPACE = 0x20;
+			const uint8_t BLOCK = 0xA0;
+			//4x2
+			for (int i = 0; i < 2; i++)
+				memset(image[i], SPACE, 4);
+
+			image[1][0] = BLOCK;
+			image[1][1] = BLOCK;
+			image[0][1] = BLOCK;
+			image[0][2] = BLOCK;
 		}
 
 		bool Rotate(unsigned char** image, int pos) {

@@ -14,6 +14,7 @@
 #define WALL 0x0D
 #define ROAD 0x20
 
+#define SWALL 0x15
 #define HEAD 0xE5
 #define BODY 0xEE
 #define EAT 0xB2
@@ -35,12 +36,12 @@ namespace Games {
 	{
 		//printf("%s: Secter menu founded\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str());
 		Display::Screen* menu = new Display::Screen(disp);
-		menu->AddLine(new Display::DisplayString(L"Secret menu", Display::DisplayString::Alignment::Center));
+		menu->AddLine(new Display::DisplayString(L"*Secret menu*", Display::DisplayString::Alignment::Center));
 		menu->AddLine(new Display::DisplayString(L" Selfdestruction", Selfdestruction));
 		menu->AddLine(new Display::DisplayString(L" Racing", RacingMenu));
 		menu->AddLine(new Display::DisplayString(L" Snake", SnakeMenu));
 		menu->AddLine(new Display::DisplayString(L" Tetris", TetrisGame));
-		menu->AddLine(new Display::DisplayString(L" Exit", [menu](Display::Display* d, uint32_t p) { menu->ReturnToPrevMenu(d,p); }));
+		menu->AddLine(new Display::DisplayString(L" Exit", [menu](Display::Display* d, uint32_t p) { menu->ReturnToPrevMenu(d, p); }));
 		menu->EnableMenu(1, 2);
 		menu->SetActive();
 	}
@@ -103,16 +104,19 @@ namespace Games {
 
 	void SnakeMenu(Display::Display * disp, uint32_t param)
 	{
-		int size, speed = 5;
+		int size, speed = 5, mode = 1;
 		bool start = false, isBordless = true;
 		wchar_t spdtext[20] = L" Speed: 0";
+		wchar_t modetext[20] = L" Mode: 0";
 		spdtext[8] = speed + 48;
+		modetext[7] = mode + 48;
 
 		disp->Power(1, Display::Display::Cursor::NoCursor_SymbolFlashing);
 		Display::Screen* scr = new Display::Screen(disp);
 		scr->AddLine(new Display::DisplayString(L" Start"));
 		scr->AddLine(new Display::DisplayString(spdtext));
 		scr->AddLine(new Display::DisplayString(L" Bordless: Y"));
+		scr->AddLine(new Display::DisplayString(modetext));
 		scr->AddLine(new Display::DisplayString(L" Exit"));
 		scr->EnableMenu(0, 1);
 		scr->UpdateDisplay();
@@ -148,6 +152,14 @@ namespace Games {
 						scr->UpdateDisplay();
 						break;
 					case 4:
+						mode++;
+						if (mode > 9)
+							mode = 1;
+						modetext[7] = mode + 48;
+						scr->SetLine(new Display::DisplayString(modetext), 3);
+						scr->UpdateDisplay();
+						break;
+					case 5:
 						Display::KeyEvents.erase(Display::KeyEvents.begin());
 						Display::ScreenMutex.unlock();
 						return;
@@ -165,14 +177,14 @@ namespace Games {
 
 			if (start) {
 				bool record = false;
-				int res = SnakeGame(disp, isBordless, speed);
+				int res = SnakeGame(disp, isBordless, speed, mode);
 				if (res > Storage->GetSnakeRecord()) {
 					Storage->SetSnakeRecord(res);
 					record = true;
 				}
 
 				Display::Screen resscr(disp);
-				resscr.AddLine(new Display::DisplayString(L"End", Display::DisplayString::Alignment::Center));
+				resscr.AddLine(new Display::DisplayString(L"Game over", Display::DisplayString::Alignment::Center));
 				wchar_t buf[20];
 				swprintf(buf, 20, L"Score: %d", res);
 				resscr.AddLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center));
@@ -192,7 +204,7 @@ namespace Games {
 		}
 	}
 
-	int SnakeGame(Display::Display * disp, bool isBordless, int speed_ms)
+	int SnakeGame(Display::Display * disp, bool isBordless, int speed_ms, int mode)
 	{
 		speed_ms = (10 - speed_ms) * 50;
 
@@ -201,25 +213,97 @@ namespace Games {
 		bool Eating = false;
 
 		Display::Screen* scr = new Display::Screen(disp);
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 20; j++) {
-				table[i][j] = SPACE;
+
+		switch (mode)
+		{
+		case 2:
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 20; j++) {
+					table[i][j] = SPACE;
+				}
 			}
+			table[1][4] = SWALL;
+			table[2][4] = SWALL;
+			table[1][15] = SWALL;
+			table[2][15] = SWALL;
+			break;
+		case 3:
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 20; j++) {
+					table[i][j] = SPACE;
+				}
+			}
+			table[1][9] = SWALL;
+			table[2][9] = SWALL;
+			table[1][10] = SWALL;
+			table[2][10] = SWALL;
+			break;
+		case 4:
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 20; j++) {
+					table[i][j] = SPACE;
+				}
+			}
+			table[0][0] = SWALL;
+			table[1][0] = SWALL;
+			table[2][0] = SWALL;
+			table[3][0] = SWALL;
+			table[0][19] = SWALL;
+			table[1][19] = SWALL;
+			table[2][19] = SWALL;
+			table[3][19] = SWALL;
+			break;
+		case 5:
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 20; j++) {
+					table[i][j] = SPACE;
+				}
+			}
+			table[2][3] = SWALL;
+			table[2][4] = SWALL;
+			table[2][5] = SWALL;
+			table[2][6] = SWALL;
+			table[1][13] = SWALL;
+			table[1][14] = SWALL;
+			table[1][15] = SWALL;
+			table[1][16] = SWALL;
+			break;
+		case 6:
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 20; j++) {
+					table[i][j] = SPACE;
+				}
+			}
+			table[0][6] = SWALL;
+			table[2][6] = SWALL;
+			table[3][6] = SWALL;
+			table[0][13] = SWALL;
+			table[1][13] = SWALL;
+			table[3][13] = SWALL;
+			break;
+		default:
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 20; j++) {
+					table[i][j] = SPACE;
+				}
+			}
+			break;
 		}
+
 		srand(time(NULL));
 
 		int Direction = 0;
 		int Size = 1;
 
 		SCoord head, bodypart;
-		head.x = 5;
+		head.x = 6;
 		head.y = 1;
 		bodypart.x = 5;
 		bodypart.y = 1;
 		Snake* snake = new Snake(&head, &bodypart);
 
-		table[head.y][head.x] = BODY;
-		table[bodypart.y][bodypart.x] = HEAD;
+		table[head.y][head.x] = HEAD;
+		table[bodypart.y][bodypart.x] = BODY;
 
 		int eatX, eatY;
 		do {
@@ -255,9 +339,11 @@ namespace Games {
 						Start = false;
 						break;
 					case EventCode::LeftKeyPress:
-						if (Direction != D_RIGHT)
-							Direction = D_LEFT;
-						Start = false;
+						if (!Start) {
+							if (Direction != D_RIGHT)
+								Direction = D_LEFT;
+							//Start = false;
+						}
 						break;
 					case EventCode::RightKeyPress:
 						if (Direction != D_LEFT)
@@ -329,8 +415,8 @@ namespace Games {
 			default:
 				break;
 			}
-
-			if (table[hY][hX] == BODY) {
+			//наткнулись на свое тело
+			if (table[hY][hX] == BODY || table[hY][hX] == SWALL) {
 				return Size;
 			}
 			//проверяем наличие хавки
@@ -447,7 +533,7 @@ namespace Games {
 				}
 
 				Display::Screen resscr(disp);
-				resscr.AddLine(new Display::DisplayString(L"End", Display::DisplayString::Alignment::Center));
+				resscr.AddLine(new Display::DisplayString(L"Game over", Display::DisplayString::Alignment::Center));
 				wchar_t buf[20];
 				swprintf(buf, 20, L"Score: %d", res);
 				resscr.AddLine(new Display::DisplayString(buf, Display::DisplayString::Alignment::Center));
@@ -702,6 +788,7 @@ namespace Games {
 			}
 		}
 	}
+
 	void TetrisGame(Display::Display * disp, uint32_t param)
 	{
 		int Score = 0;
@@ -711,6 +798,8 @@ namespace Games {
 		Display::Screen* scr = new Display::Screen(disp);
 		disp->Power(1, Display::Display::Cursor::NoCursor_NoFlashing);
 
+		unsigned int seed = time(NULL);
+		srandom(seed);
 		//Game area, pixels
 		unsigned char** area = new unsigned char*[32];
 		for (int i = 0; i < 32; i++) {
@@ -745,6 +834,7 @@ namespace Games {
 
 		bool InAction = false;
 		Figure* figure = nullptr;
+		Figure* NextFigure = nullptr;
 		int CurrentPos = 0;
 		int UserInputCounterTicks = 0;
 		while (1) {
@@ -777,7 +867,7 @@ namespace Games {
 					delete[] r;
 					Display::KeyEvents.erase(Display::KeyEvents.begin());
 					Display::ScreenMutex.unlock();
-					return ;
+					return;
 				case EventCode::DownKeyPress:
 					Delay = 1;
 					UserInputCounterTicks = 10;
@@ -883,13 +973,41 @@ namespace Games {
 					delete[] r;
 					//Losing
 					this_thread::sleep_for(chrono::seconds(3));
-					return ;
+					return;
 				}
 			//Создание новой фигурки
 			if (!InAction) {
 				InAction = true;
-				if (figure != nullptr) delete figure;
-				figure = CreateRandom();
+				//delete old
+				if (figure != nullptr) {
+					delete figure;
+					//set new
+					figure = NextFigure;
+				}
+				else
+					//set new
+					figure = CreateRandom();
+
+				//create next
+				NextFigure = CreateRandom();
+
+				unsigned char** preview = new unsigned char*[2];
+				preview[0] = new unsigned char[4];
+				preview[1] = new unsigned char[4];
+
+				NextFigure->GetPreview(preview);
+				for (int i = 2; i < 4; i++) {
+					for (int j = 5; j < 9; j++) {
+						r[i][j] = preview[i - 2][j - 5];
+					}
+				}
+				scr->SetLine(new Display::DisplayString(r[2], 20), 2);
+				scr->SetLine(new Display::DisplayString(r[3], 20), 3);
+				scr->UpdateDisplay();
+
+				delete[] preview[0];
+				delete[] preview[1];
+				delete[] preview;
 
 				int pos = figure->InitPos();
 
@@ -901,6 +1019,9 @@ namespace Games {
 					}
 				}
 				CurrentPos = pos;
+				int rts = random() % 5;
+				for(int i=0;i<rts;i++)
+					figure->Rotate(area, CurrentPos);
 			}
 
 			//Обновление экрана
@@ -917,6 +1038,6 @@ namespace Games {
 			delete[] r[i];
 		}
 		delete[] r;
-		return ;
+		return;
 	}
 }

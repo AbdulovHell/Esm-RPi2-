@@ -7,7 +7,7 @@ namespace Games {
 	void LaunchSecretMenu(Display::Display * disp,uint32_t param);
 	void Selfdestruction(Display::Display * disp, uint32_t param);
 	void SnakeMenu(Display::Display * disp, uint32_t param);
-	int SnakeGame(Display::Display * disp, bool isBordless, int speed_ms);
+	int SnakeGame(Display::Display * disp, bool isBordless, int speed_ms,int mode);
 	void RacingMenu(Display::Display* disp, uint32_t param);
 	int RacingGame2(Display::Display * disp, int speed);
 	int RacingGame4(Display::Display * disp, int speed);

@@ -15,7 +15,7 @@ namespace Display {
 
 	mutex ScreenMutex;
 	vector<KeyEvent*> KeyEvents;
-	const float SoftwareVersion = 1.57;
+	const float SoftwareVersion = 1.60;
 
 	template <typename T> T Pow(T base, int n) {
 		if (n == 0) return (T)1;
