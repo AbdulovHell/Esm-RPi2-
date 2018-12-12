@@ -2,6 +2,8 @@
 #define _SYS_HEADERS_H_
 
 #include <chrono>
+#include <memory>
+#include <functional>
 #include <iostream>
 #include <fstream>
 #include <list>

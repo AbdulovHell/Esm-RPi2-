@@ -16,7 +16,7 @@ namespace Threading {
 		fseek(log, 0, SEEK_SET);
 		char* buf = new char[pos + 1];
 		buf[pos] = 0;
-		auto readed = fread(buf, pos, pos, log);
+		fread(buf, pos, pos, log);
 		string info = buf;
 		fclose(log);
 		//delete[] buf;

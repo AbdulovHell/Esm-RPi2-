@@ -5,6 +5,7 @@
 #include "Task.h"
 #include "main.h"
 #include "syslogs.h"
+#include "stuff.h"
 
 namespace Threading {
 	float Temperature;
@@ -46,7 +47,7 @@ void * Threading::TimingThread::Timing(void * ptr_null)
 			Stuff::Storage->SetWorkTime(Stuff::Storage->GetWorkTime() + Elapsed);
 			LastTime = CurTime;
 			Threading::SALog.Append("Reques temperature");
-			Threading::AddTask(new Threading::TaskRequestTemp(&Temperature));
+			Threading::AddTask(Stuff::make_unique<Threading::TaskRequestTemp>(&Temperature));
 			UpdateNow = true;
 		}
 		this_thread::sleep_for(std::chrono::microseconds(1));

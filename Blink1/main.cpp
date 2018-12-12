@@ -34,18 +34,18 @@ namespace Threading {
 	LCDControlThread* lcdThrd;
 	ButtonsInputThread* biThrd;
 	TimingThread* timingThrd;
-	vector<Threading::Task*> MainTasks;
+	std::vector<std::unique_ptr<Threading::Task>> MainTasks;
 	std::mutex* TasksMutex;
-	
+
 
 #ifdef _DEBUG
 	ConsoleInputThread* ciThrd;
 #endif
 
-	void AddTask(Threading::Task * tsk)
+	void AddTask(unique_ptr<Threading::Task> tsk)
 	{
 		TasksMutex->lock();
-		MainTasks.push_back(tsk);
+		MainTasks.push_back(std::move(tsk));
 		TasksMutex->unlock();
 	}
 }
@@ -72,8 +72,8 @@ void InitShutdown() {
 
 int main(int argc, char* argv[])
 {
-	int channel = 6;
-	int att = 0;
+	//int channel = 6;
+	//int att = 0;
 	int port = 4550;
 
 	wiringPiSetupGpio();
@@ -130,17 +130,17 @@ int main(int argc, char* argv[])
 #endif
 	*/
 	SALog.Append("Set params");
-	MainTasks.push_back(new TaskSetFreq(Storage->GetFreq()));
-	MainTasks.push_back(new TaskSetAtt(Storage->GetRFAtt(), Storage->GetIFAtt()));
-	MainTasks.push_back(new TaskSetOutput(Storage->GetIF()));
-	MainTasks.push_back(new TaskAdjustBL(Storage->GetBrightLvl()));
-	MainTasks.push_back(new TaskChangeRef(Storage->GetRef()));
+	MainTasks.push_back(make_unique<TaskSetFreq>(Storage->GetFreq()));
+	MainTasks.push_back(make_unique<TaskSetAtt>(Storage->GetRFAtt(), Storage->GetIFAtt()));
+	MainTasks.push_back(make_unique<TaskSetOutput>(Storage->GetIF()));
+	MainTasks.push_back(make_unique<TaskAdjustBL>(Storage->GetBrightLvl()));
+	MainTasks.push_back(make_unique<TaskChangeRef>(Storage->GetRef()));
 	//system("gpio export 27 output && gpio export 17 output && gpio export 22 output && gpio export 26 output && gpio export 19 output && gpio export 13 output && gpio export 6 output");
 	//device tree enabled
 	//system("gpio load spi");
 	//system("gpio load i2c");
 
-	
+
 
 	//Threading::ReadIP();
 	SALog.Append("Start thrds");
@@ -188,10 +188,13 @@ int main(int argc, char* argv[])
 		TasksMutex->lock();
 		int size = MainTasks.size();
 		if (size > 0) {
-			MainTasks[0]->Run();
+			unique_ptr<Task> temp = move(MainTasks[0]);
 			MainTasks.erase(MainTasks.begin());
+			TasksMutex->unlock();
+			temp->Run();
 		}
-		TasksMutex->unlock();
+		else
+			TasksMutex->unlock();
 
 		ListenersMutex->lock();
 		vector<Threading::TCPReciverThread*>::iterator itRecv = Listeners.begin();
@@ -216,7 +219,7 @@ int main(int argc, char* argv[])
 
 			dev.Write(rBuf, size);
 			delete[] rBuf;
-		}
+	}
 #endif
 
 #ifdef I2C_TEST
@@ -232,6 +235,6 @@ int main(int argc, char* argv[])
 			cout << "i2c r:" << res << endl;*/
 #endif
 
-	}
+}
 	return 0;
 }

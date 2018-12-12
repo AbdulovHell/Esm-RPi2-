@@ -8,14 +8,16 @@
 #include "Task.h"
 #include "settings.h"
 #include "IPChanger.h"
+#include "stuff.h"
 #include <inttypes.h>
 
 namespace Display {
 	using namespace std;
+	using namespace Stuff;
 
 	mutex ScreenMutex;
 	vector<KeyEvent*> KeyEvents;
-	const float SoftwareVersion = 1.60;
+	const float SoftwareVersion = 1.62;
 
 	template <typename T> T Pow(T base, int n) {
 		if (n == 0) return (T)1;
@@ -122,7 +124,7 @@ namespace Display {
 						if (prevFreq != Freq) {	//произошло изменение
 							prevFreq = Freq;
 							printf("%s: Add SetFreq Task %d\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), Freq);
-							Threading::AddTask(new Threading::TaskSetFreq(Freq));
+							Threading::AddTask(make_unique<Threading::TaskSetFreq>(Freq));
 							swprintf(freqstr, 20, L"  Freq: %5d MHz", Freq);
 							scr->SetLine(new DisplayString(freqstr), 1);
 						}
@@ -184,7 +186,7 @@ namespace Display {
 							PrevAtt = RFinAtt;
 							swprintf(AttRFinStr, 20, L"RF Att: %2d dB", RFinAtt);
 							scr->SetLine(new DisplayString(AttRFinStr), 2);
-							Threading::AddTask(new Threading::TaskSetAtt(RFinAtt, IFAtt));
+							Threading::AddTask(make_unique<Threading::TaskSetAtt>(RFinAtt, IFAtt));
 						}
 						scr->UpdateDisplay();
 						disp->SetCursorPos(CursorPos - scr->TopLineIndex(), pos);
@@ -244,7 +246,7 @@ namespace Display {
 							PrevAtt = IFAtt;
 							swprintf(AttIFStr, 20, L"IF Att: %2d dB", IFAtt);
 							scr->SetLine(new DisplayString(AttIFStr), 3);
-							Threading::AddTask(new Threading::TaskSetAtt(RFinAtt, IFAtt));
+							Threading::AddTask(make_unique<Threading::TaskSetAtt>(RFinAtt, IFAtt));
 						}
 						scr->UpdateDisplay();
 						disp->SetCursorPos(CursorPos - scr->TopLineIndex(), pos);
@@ -290,7 +292,7 @@ namespace Display {
 						if (prevpos != pos) {	//произошло изменение
 							prevpos = pos;
 							printf("%s: Add SetOutput to %d task\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), pos == pos1485 ? 1485 : 140);
-							Threading::AddTask(new Threading::TaskSetOutput(pos == pos1485 ? 1 : 0));
+							Threading::AddTask(make_unique<Threading::TaskSetOutput>(pos == pos1485 ? 1 : 0));
 							if (pos == pos1485) {
 								OutSelectStr[pos1485] = '>';
 								OutSelectStr[pos140] = ' ';
@@ -740,7 +742,7 @@ namespace Display {
 							}
 							scr->SetLine(new DisplayString(temp_str), 2);
 							printf("%s: Add AdjustBL Task %d %\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), Step);
-							Threading::AddTask(new Threading::TaskAdjustBL(Step));
+							Threading::AddTask(make_unique<Threading::TaskAdjustBL>(Step));
 						}
 						scr->UpdateDisplay();
 						//disp->SetCursorPos(mode, pos);
@@ -799,7 +801,7 @@ namespace Display {
 							}
 							scr->SetLine(new DisplayString(PWMstr), 4);
 							printf("%s: Add SetPWM Task %d %\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), PWMStep);
-							Threading::AddTask(new Threading::TaskSetPWM(PWMStep));
+							Threading::AddTask(make_unique<Threading::TaskSetPWM>(PWMStep));
 						}
 						scr->UpdateDisplay();
 						//disp->SetCursorPos(mode, pos);
@@ -846,7 +848,7 @@ namespace Display {
 						if (prevpos != pos) {	//произошло изменение
 							prevpos = pos;
 							printf("%s: Add ChangeRef to %s task\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), pos == posInt ? "internal" : "external");
-							Threading::AddTask(new Threading::TaskChangeRef(pos == posInt ? 1 : 0));
+							Threading::AddTask(make_unique<Threading::TaskChangeRef>(pos == posInt ? 1 : 0));
 							if (pos == posInt) {
 								RefSelectStr[posInt] = '>';
 								RefSelectStr[posExt] = ' ';

@@ -1,5 +1,8 @@
 ﻿#include "sys_headers.h"
 
+#include <memory>
+#include <functional>
+
 #include "DisplayControl.h"
 #include "LCD.h"
 
@@ -833,8 +836,8 @@ namespace Games {
 		scr->UpdateDisplay();
 
 		bool InAction = false;
-		Figure* figure = nullptr;
-		Figure* NextFigure = nullptr;
+		unique_ptr<Figure> figure;
+		unique_ptr<Figure> NextFigure;
 		int CurrentPos = 0;
 		int UserInputCounterTicks = 0;
 		while (1) {
@@ -980,9 +983,9 @@ namespace Games {
 				InAction = true;
 				//delete old
 				if (figure != nullptr) {
-					delete figure;
+					//delete figure;
 					//set new
-					figure = NextFigure;
+					figure = std::move(NextFigure);
 				}
 				else
 					//set new

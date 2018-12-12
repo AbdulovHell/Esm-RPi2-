@@ -6,9 +6,9 @@
 void InitShutdown();
 
 namespace Threading {
-	extern std::vector<Threading::Task*> MainTasks;
+	extern std::vector<std::unique_ptr<Threading::Task>> MainTasks;
 	extern std::mutex* TasksMutex;
 
-	void AddTask(Threading::Task* tsk);
+	void AddTask(std::unique_ptr<Threading::Task> tsk);
 }
 #endif //_MAIN_H_

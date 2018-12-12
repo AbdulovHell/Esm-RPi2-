@@ -9,6 +9,8 @@
 #include "settings.h"
 
 namespace Threading {
+	using namespace Stuff;
+
 	std::vector<Threading::TCPReciverThread*> Listeners;
 	std::mutex* ListenersMutex;
 
@@ -88,10 +90,10 @@ namespace Threading {
 					TRData dt;
 					memcpy(&dt, buf + 2, sizeof(TRData));
 				
-					if (buf[0] & FREQ) Threading::AddTask(new Threading::TaskSetFreq(dt.Freq));
-					if (buf[0] & RFATT || buf[0] & IFATT) Threading::AddTask(new Threading::TaskSetAtt(dt.RFatt, dt.IFatt));
-					if (buf[0] & _IF) Threading::AddTask(new Threading::TaskSetOutput(dt.IF));
-					if (buf[0] & REF) Threading::AddTask(new Threading::TaskChangeRef(dt.Ref));
+					if (buf[0] & FREQ) Threading::AddTask(make_unique<Threading::TaskSetFreq>(dt.Freq));
+					if (buf[0] & RFATT || buf[0] & IFATT) Threading::AddTask(make_unique<Threading::TaskSetAtt>(dt.RFatt, dt.IFatt));
+					if (buf[0] & _IF) Threading::AddTask(make_unique<Threading::TaskSetOutput>(dt.IF));
+					if (buf[0] & REF) Threading::AddTask(make_unique<Threading::TaskChangeRef>(dt.Ref));
 
 					sprintf(buf + 1, "Ok. F:%d RFatt:%d IFAtt:%d %s\n", dt.Freq, dt.RFatt, dt.IFatt, dt.IF ? "1485" : "140");
 					buf[0] = RESERVED;

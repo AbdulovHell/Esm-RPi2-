@@ -2,12 +2,15 @@
 #define _TETRIS_H_
 
 #include <stdlib.h>
+#include "stuff.h"
 
 #define STATIC 2
 #define ACTIONFIGURE 1
 #define EMPTY 0
 
 namespace Games {
+
+	using namespace Stuff;
 
 	class Figure {
 	protected:
@@ -621,27 +624,27 @@ namespace Games {
 		}
 	};
 
-	Figure* CreateRandom() {
+	std::unique_ptr<Figure> CreateRandom() {
 		switch (random() % 8)
 		{
 		case 0:
-			return new Line();
+			return make_unique<Line>();
 		case 1:
-			return new Cube();
+			return make_unique<Cube>();
 		case 2:
-			return new TCross();
+			return make_unique<TCross>();
 		case 3:
-			return new LeftTurn();
+			return make_unique<LeftTurn>();
 		case 4:
-			return new RightTurn();
+			return make_unique<RightTurn>();
 		case 5:
-			return new Point();
+			return make_unique<Point>();
 		case 6:
-			return new Z1();
+			return make_unique<Z1>();
 		case 7:
-			return new Z2();
+			return make_unique<Z2>();
 		default:
-			return new Cube();
+			return make_unique<Cube>();
 		}
 	}
 }

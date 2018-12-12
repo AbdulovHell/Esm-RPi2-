@@ -9,6 +9,7 @@
 #include "DisplayControl.h"
 #include "TCP.h"
 #include "main.h"
+#include "stuff.h"
 
 
 void EmulatingKeyboard()
@@ -58,7 +59,7 @@ namespace Threading {
 				//place shutdown task
 				printf("%s: Place task -> Quit\n", Stuff::MakeColor("INPUT", Stuff::Blue).c_str());
 				TasksMutex->lock();
-				MainTasks.push_back(new TaskQuit());
+				MainTasks.push_back(Stuff::make_unique<TaskQuit>());
 				TasksMutex->unlock();
 			}
 			if (strcmp(buf, "pkey") == 0) {
