@@ -17,7 +17,7 @@ namespace Display {
 
 	mutex ScreenMutex;
 	vector<KeyEvent*> KeyEvents;
-	const float SoftwareVersion = 1.62;
+	const float SoftwareVersion = 1.63;
 
 	template <typename T> T Pow(T base, int n) {
 		if (n == 0) return (T)1;
@@ -848,7 +848,7 @@ namespace Display {
 						if (prevpos != pos) {	//произошло изменение
 							prevpos = pos;
 							printf("%s: Add ChangeRef to %s task\n", Stuff::MakeColor("DISPLAY", Stuff::Yellow).c_str(), pos == posInt ? "internal" : "external");
-							Threading::AddTask(make_unique<Threading::TaskChangeRef>(pos == posInt ? 1 : 0));
+							Threading::AddTask(make_unique<Threading::TaskChangeRef>(pos == posInt ? 0 : 1));
 							if (pos == posInt) {
 								RefSelectStr[posInt] = '>';
 								RefSelectStr[posExt] = ' ';
